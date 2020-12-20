@@ -1,0 +1,4 @@
+name = "DatasetProvider"
+uuid = "913e5785-22c8-4999-b545-348ed9033f52"
+authors = ["Vaclav Macha <vaclav.macha92@gmail.com>"]
+version = "0.1.0"
