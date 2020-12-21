@@ -113,15 +113,22 @@ function partition_class(targets, at)
 end
 
 # data split
-function datasplit(data::Tuple, obsdim, at)
+function datasplit(data::Tuple, obsdim, at; shuffle = true)
     x, y = data
-    return map(partition_class(y, at)) do inds
-        return selectdim(x, obsdim, inds), selectdim(y, 1, inds)
+    n = length(y)
+    prm = shuffle ? Random.randperm(n) : 1:n
+    return map(partition_class(view(y, prm), at)) do inds
+        perm_inds = prm[inds]
+        return selectdim(x, obsdim, perm_inds), selectdim(y, 1, perm_inds)
     end
 end
 
-function datasplit(data::DataFrame, obsdim, at)
-    return map(partition_class(data.labels, at)) do inds
-        return view(data, inds, :)
+function datasplit(data::DataFrame, obsdim, at; shuffle = true)
+    y = data.labels
+    n = length(y)
+    prm = shuffle ? Random.randperm(n) : 1:n
+
+    return map(partition_class(view(y, prm), at)) do inds
+        return view(data, prm[inds], :)
     end
 end
