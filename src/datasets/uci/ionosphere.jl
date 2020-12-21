@@ -1,19 +1,16 @@
-struct Ionosphere <: Dataset end
+struct Ionosphere <: Name end
 
-function Ionosphere(; kwargs...)
-    return TwoClass(Ionosphere, TabularData(; kwargs...); kwargs...)
-end
-
+Ionosphere(; kwargs...) = Dataset(Ionosphere; kwargs...)
 problemtype(::Type{Ionosphere}) = TwoClass
 formattype(::Type{Ionosphere}) = TabularData
 
-function prepare(::Type{Ionosphere}, path)
+function prepare(N::Type{Ionosphere}, path)
     table = csvread(path)
 
     labels = table[:, end] .== "g"
     table = table[:, 1:end-1]
     table.labels = labels
-    save_raw(Ionosphere(), path, :train, table)
+    save_raw(N, path, :train, table)
     return
 end
 

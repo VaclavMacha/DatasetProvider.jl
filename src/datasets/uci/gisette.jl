@@ -1,24 +1,20 @@
-struct Gisette <: Dataset end
+struct Gisette <: Name end
 
-function Gisette(; kwargs...)
-    return TwoClass(Gisette, TabularData(; kwargs...); kwargs...)
-end
-
+Gisette(; kwargs...) = Dataset(Gisette; kwargs...)
 problemtype(::Type{Gisette}) = TwoClass
 formattype(::Type{Gisette}) = TabularData
 hasvalid(::Type{Gisette}) = true
 
-
-function prepare_data(::Type{Gisette}, path, key)
+function prepare_data(N::Type{Gisette}, path, key)
     table = csvread(path)
-    save_raw(Gisette(), path, key, table[:, 1:end-1])
+    save_raw(N, path, key, table[:, 1:end-1])
     return
 end
 
-function prepare_labels(::Type{Gisette}, path, key)
-    table = load_raw(Gisette(), key)
+function prepare_labels(N::Type{Gisette}, path, key)
+    table = load_raw(N, key)
     table.labels = csvread(path)[:, 1] .== 1
-    save_raw(Gisette(), path, key, table)
+    save_raw(N, path, key, table)
     return
 end
 

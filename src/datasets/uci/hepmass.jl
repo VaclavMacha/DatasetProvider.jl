@@ -1,20 +1,17 @@
-struct Hepmass <: Dataset end
+struct Hepmass <: Name end
 
-function Hepmass(; kwargs...)
-    return TwoClass(Gisette, TabularData(; kwargs...); kwargs...)
-end
-
+Hepmass(; kwargs...) = Dataset(Hepmass; kwargs...)
 problemtype(::Type{Hepmass}) = TwoClass
 formattype(::Type{Hepmass}) = TabularData
-hastest(::Type{Gisette}) = true
+hastest(::Type{Hepmass}) = true
 
-function prepare(::Type{Hepmass}, path, key)
+function prepare(N::Type{Hepmass}, path, key)
     table = csvread(transcode(GzipDecompressor, Mmap.mmap(path)); header = true)
 
     labels = table[:, 1] .== 1
     table = table[:, 2:end]
     table.labels = labels
-    save_raw(Hepmass(), path, key, table)
+    save_raw(N, path, key, table)
     return
 end
 

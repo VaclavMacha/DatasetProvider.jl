@@ -1,19 +1,16 @@
-struct Spambase <: Dataset end
+struct Spambase <: Name end
 
-function Spambase(; kwargs...)
-    return TwoClass(Gisette, TabularData(; kwargs...); kwargs...)
-end
-
+Spambase(; kwargs...) = Dataset(Spambase; kwargs...)
 problemtype(::Type{Spambase}) = TwoClass
 formattype(::Type{Spambase}) = TabularData
 
-function prepare(::Type{Spambase}, path)
+function prepare(N::Type{Spambase}, path)
     table = csvread(path)
 
     labels = table[:, end] .== 1
     table = table[:, 1:end-1]
     table.labels = labels
-    save_raw(Spambase(), path, :train, table)
+    save_raw(N, path, :train, table)
     return
 end
 

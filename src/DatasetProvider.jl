@@ -7,97 +7,85 @@ using DataDeps
 using DataFrames
 using Dates
 using InteractiveUtils
-using MLDataUtils
 using Mmap
 using Random
 using Statistics
+using StatsBase
 
 import MLDatasets
 
-export load_raw, remove, removeall, listdatasets, train_valid_test, train_test
+export load_raw, remove, removeall, listdatasets
 export Dataset
+export Name
 export Problem, TwoClass, MultiClass
-export Format, TabularData
+export Format, TabularData, GreyImages, ColorImages
+export Split, TrainTest, TrainValidTest
 
-# dataset
-abstract type Dataset end
-
-hastrain(::Type{<:Dataset}) = true
-hasvalid(::Type{<:Dataset}) = false
-hastest(::Type{<:Dataset}) = false
-
-# data format
+# Dataset
+abstract type Name end
+abstract type Problem end
 abstract type Format end
-abstract type Images <: Format end
 
-struct TabularData <: Format
-    asmatrix::Bool
-
-    function TabularData(; asmatrix = false, kwargs...)
-        return new(asmatrix)
-    end
-end
-
-samplesdim(::Type{TabularData}) = 1
-
-struct MatrixData <: Format end
-
-samplesdim(::Type{MatrixData}) = 2
-
-struct GrayImages <: Format end
-
-samplesdim(::Type{GrayImages}) = 3
-
-struct ColorImages <: Format end
-
-samplesdim(::Type{ColorImages}) = 4
-
-# data problem
-abstract type Problem{D, F} end
-
-samplesdim(::Problem{D, F}) where {D<:Dataset, F<:Format} = samplesdim(F)
-
-struct TwoClass{D<:Dataset, F<:Format} <: Problem{D, F}
+struct Dataset{N<:Name, P<:Problem, F<:Format}
+    problem::P
     format::F
-    standardize::Bool
-    seed::Int64
 
-    function TwoClass(
-        D::Type{<:Dataset},
+    function Dataset(
+        N::Type{<:Name},
+        problem::P,
         format::F;
-        standardize = true,
-        seed = 1234,
         kwargs...
-    ) where {F<:Format}
+    ) where {P<:Problem, F<:Format}
 
-        return new{D, F}(format, standardize, seed)
+        return new{N, P, F}(problem, format)
     end
 end
 
-struct MultiClass{D<:Dataset, F<:Format} <: Problem{D, F}
-    format::F
-    labelmap::Function
-    standardize::Bool
-    seed::Int64
+function Dataset(N::Type{<:Name}; kwargs...)
+    Dataset(N, problem(N; kwargs...), format(N; kwargs...); kwargs...)
+end
 
-    function MultiClass(
-        D::Type{<:Dataset},
-        format::F,
-        labelmap = identity;
-        standardize = true,
-        seed = 1234,
-        kwargs...
-    ) where {F<:Format}
+function Base.show(io::IO, ::Dataset{N, P, F}) where {N<:Name, P<:Problem, F<:Format}
+    println(io, "Dataset: ", nameof(N))
+    println(io, " - ", nameof(P), " problem")
+    println(io, " - ", nameof(F), " format")
+    return
+end
 
-        return new{D, F}(format, labelmap, standardize, seed)
+
+# Name
+function hassubset(N::Type{<:Name}, type::Symbol)
+    return if type == :train
+        hastrain(N)
+    elseif type == :valid
+        hasvalid(N)
+    elseif type == :test
+        hastest(N)
+    else
+        false
     end
 end
 
+hastrain(::Type{<:Name}) = true
+hasvalid(::Type{<:Name}) = false
+hastest(::Type{<:Name}) = false
+
+function problemtype() end
+function formattype() end
+
+problem(N::Type{<:Name}; kwargs...) = problemtype(N)(; kwargs...)
+format(N::Type{<:Name}; kwargs...) = formattype(N)(; kwargs...)
+
+# Includes
+include("saveload.jl")
+include("problems.jl")
+include("formats.jl")
 include("utilities.jl")
+include("splits.jl")
 
 function __init__()
     include.(readdir(joinpath(@__DIR__, "datasets", "uci"); join = true))
-    include.(readdir(joinpath(@__DIR__, "datasets", "mnist"); join = true))
+    include(joinpath(@__DIR__, "datasets", "mldatasets.jl"))
 end
 
 end # module
