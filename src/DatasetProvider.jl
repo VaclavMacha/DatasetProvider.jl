@@ -72,7 +72,7 @@ end
 function postprocess(dataset::Dataset, data)
     data = postprocess(dataset.format, data)
     data = postprocess(dataset.problem, data)
-    return data
+    return copy.(data)
 end
 
 # Name
