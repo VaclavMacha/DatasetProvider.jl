@@ -17,12 +17,7 @@ julia> using DatasetProvider
 
 julia> using DatasetProvider: Ionosphere
 
-julia> dataset = Ionosphere()
-Dataset: Ionosphere
- - TwoClass problem
- - TabularData format
-
-julia> data = load_raw(dataset, :train);
+julia> data = load(Ionosphere(), :train);
 
 julia> first(data, 6)
 6×35 DataFrame
@@ -40,10 +35,15 @@ julia> first(data, 6)
 
 ### Train-valid-test split
 ```julia
-julia> split = TrainValidTest(at = (0.6, 0.2), shuffle = true, seed = 1234)
-TrainValidTest((0.6, 0.2), true, true, 1234)
+julia> split = TrainValidTest((0.6, 0.2))
+TrainValidTest((0.6, 0.2))
 
-julia> train, valid, test = split(Ionosphere());
+julia> dataset = Ionosphere(; shuffle = true, seed = 1234)
+Dataset: Ionosphere
+ - TwoClass problem
+ - TabularData format
+
+julia> train, valid, test = load(split, dataset);
 
 julia> first(train, 6)
 6×35 DataFrame
@@ -63,6 +63,24 @@ julia> ns = size.((train,  valid, test), 1)
 
 julia> round.(ns ./ sum(ns); digits = 4)
 (0.6011, 0.1994, 0.1994)
+```
+
+```julia
+julia> dataset = Ionosphere(; shuffle = true, seed = 1234, asmatrix = true)
+Dataset: Ionosphere
+ - TwoClass problem
+ - TabularData format
+
+julia> train, valid, test = load(split, dataset);
+
+julia> train[1][1:6, 1:5]
+6×5 Array{Float64,2}:
+ 1.0  0.0   1.0  -0.01081   1.0
+ 1.0  0.0   1.0  -1.0       1.0
+ 1.0  0.0   1.0  -0.01179   1.0
+ 1.0  0.0  -1.0  -1.0      -0.50694
+ 0.0  0.0  -1.0  -1.0       0.0
+ 1.0  0.0   0.0   0.0       0.0
 ```
 
 ### Listing datasets
