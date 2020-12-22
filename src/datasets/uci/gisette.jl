@@ -6,14 +6,17 @@ formattype(::Type{Gisette}) = TabularData
 hasvalid(::Type{Gisette}) = true
 
 function prepare_data(N::Type{Gisette}, path, key)
-    table = csvread(path)
-    save_raw(N, path, key, table[:, 1:end-1])
+    table = uciprepare(
+        path;
+        col_remove = 5001,
+    )
+    save_raw(N, path, key, table)
     return
 end
 
 function prepare_labels(N::Type{Gisette}, path, key)
     table = load_raw(N, key)
-    table.labels = csvread(path)[:, 1] .== 1
+    table.targets = csvread(path)[:, 1] .== 1
     save_raw(N, path, key, table)
     return
 end

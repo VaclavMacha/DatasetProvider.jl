@@ -5,11 +5,11 @@ problemtype(::Type{Spambase}) = TwoClass
 formattype(::Type{Spambase}) = TabularData
 
 function prepare(N::Type{Spambase}, path)
-    table = csvread(path)
-
-    labels = table[:, end] .== 1
-    table = table[:, 1:end-1]
-    table.labels = labels
+    table = uciprepare(
+        path;
+        col_targets = 58,
+        pos_labels = 1,
+    )
     save_raw(N, path, :train, table)
     return
 end

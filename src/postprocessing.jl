@@ -51,7 +51,7 @@ function data_split(data::Tuple, obsdim, at)
 end
 
 function data_split(data::AbstractDataFrame, obsdim, at)
-    y = data.labels
+    y = data.targets
     return map(partition_class(y, at)) do inds
         return view(data, inds, :)
     end
@@ -71,7 +71,7 @@ end
 
 function data_shuffle(data::AbstractDataFrame, obsdim; seed = 1234)
     Random.seed!(seed)
-    y = data.labels
+    y = data.targets
     prm = Random.randperm(length(y))
     return view(data, prm, :)
 end
@@ -85,11 +85,12 @@ function data_binarize(data::Tuple, poslabels)
 end
 
 function data_binarize(data::AbstractDataFrame, poslabels)
-    y = data.labels
-    select!(data, Not(:labels))
-    data.labels = data_binarize(y, poslabels)
+    y = data.targets
+    select!(data, Not(:targets))
+    data.targets = data_binarize(y, poslabels)
     return data
 end
 
-data_binarize(y::AbstractVector, poslabels) = data_binarize(y, [poslabels...,])
-data_binarize(y::AbstractVector, poslabels::AbstractVector) = in.(y, Ref(poslabels))
+data_binarize(y::AbstractVector, poslabels::String) = y .== poslabels
+data_binarize(y::AbstractVector, poslabels::Symbol) = y .== poslabels
+data_binarize(y::AbstractVector, poslabels) = in.(y, Ref(poslabels))

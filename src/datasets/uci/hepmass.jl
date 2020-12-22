@@ -6,11 +6,12 @@ formattype(::Type{Hepmass}) = TabularData
 hastest(::Type{Hepmass}) = true
 
 function prepare(N::Type{Hepmass}, path, key)
-    table = csvread(transcode(GzipDecompressor, Mmap.mmap(path)); header = true)
-
-    labels = table[:, 1] .== 1
-    table = table[:, 2:end]
-    table.labels = labels
+    table = uciprepare(
+        transcode(GzipDecompressor, Mmap.mmap(path));
+        col_targets = 1,
+        pos_labels = 1,
+        header = true
+    )
     save_raw(N, path, key, table)
     return
 end

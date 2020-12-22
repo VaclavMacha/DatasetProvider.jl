@@ -5,14 +5,15 @@ problemtype(::Type{Ionosphere}) = TwoClass
 formattype(::Type{Ionosphere}) = TabularData
 
 function prepare(N::Type{Ionosphere}, path)
-    table = csvread(path)
-
-    labels = table[:, end] .== "g"
-    table = table[:, 1:end-1]
-    table.labels = labels
+    table = uciprepare(
+        path;
+        col_targets = 35,
+        pos_labels = "g",
+    )
     save_raw(N, path, :train, table)
     return
 end
+
 
 register(DataDep(
     string(nameof(Ionosphere)),

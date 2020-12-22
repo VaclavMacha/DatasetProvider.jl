@@ -11,8 +11,8 @@ load_raw(::Type{TabularData}, path) = CSV.File(path; header = true) |> DataFrame
 
 function postprocess(format::TabularData, data::AbstractDataFrame)
     if format.asmatrix
-        y = data.labels
-        x = select(data, Not(:labels))
+        y = data.targets
+        x = select(data, Not(:targets))
         return Array(x), y
     else
         return data

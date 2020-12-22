@@ -18,6 +18,57 @@ function csvread(
     ) |> DataFrame
 end
 
+function column_name(ind, col_categorical, col_targets)
+    ind == col_targets && return :targets
+    type = in(ind, col_categorical) ? "cat" : "num"
+    return Symbol("$(type)$(ind)")
+end
+
+function uciprepare(
+    path;
+    col_categorical = Int[],
+    col_remove = Int[],
+    col_targets::Int = 0,
+    pos_labels = [],
+    kwargs...
+)
+
+    table = csvread(path; kwargs...)
+
+    # rename and remove columns
+    cols_remove = Int[]
+    cols_names = Symbol[]
+    id = 1
+    for (col, name) in enumerate(propertynames(table))
+        if in(col, col_remove)
+            push!(cols_remove, col)
+        elseif col == col_targets
+            name = :targets
+        elseif in(col, col_categorical)
+            name = Symbol("cat", id)
+            id += 1
+        else
+            name = Symbol("num", id)
+            id += 1
+        end
+        push!(cols_names, name)
+    end
+    rename!(table, cols_names)
+    select!(table, Not(cols_remove))
+
+    # change targets position and binarize
+    if hasproperty(table, :targets)
+        y = table.targets
+        if !isempty(pos_labels)
+            y = data_binarize(y, pos_labels)
+        end
+        select!(table, Not(:targets))
+        table.targets = y
+    end
+    return table
+end
+
+
 """
     datapath(N::Type{<:Name}, type::Symbol)
 

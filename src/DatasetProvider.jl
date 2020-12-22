@@ -34,7 +34,7 @@ save_raw(::Type{<:Format}, path, data) = BSON.bson(path, data)
 
 function load_raw(::Type{<:Format}, path)
     dict = BSON.bson(path)
-    return dict[:data], dict[:labels]
+    return dict[:data], dict[:targets]
 end
 
 postprocess(::Format, data) = data
