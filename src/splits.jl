@@ -1,79 +1,80 @@
 abstract type Split end
 
-struct TrainTest <: Split
-    at::Float64
-    standardize::Bool
-    shuffle::Bool
-    seed::Int64
+function load(
+    dataset::Dataset{N, P, F},
+    type::Symbol;
+    dopostprocess::Bool = true,
+) where {N<:Name, P<:Problem, F<:Format}
 
-    function TrainTest(;
-        at::Real = 0.75,
-        standardize = true,
-        shuffle = true,
-        seed = 1234,
-        kwargs...
-    )
+    seed = dataset.seed
+    shuffle = dataset.shuffle
+    obsdim = samplesdim(F)
+    data = data_shuffle(load_raw(N, type), obsdim, shuffle; seed)
 
-        return new(at, standardize, shuffle, seed)
+    if dopostprocess
+        return postprocess(dataset, data)
+    else
+        return data
     end
 end
 
-function (split::TrainTest)(
+load(dataset::Dataset) = load(TrainValidTest(), dataset)
+
+struct TrainTest <: Split
+    at::Float64
+
+    TrainTest(at::Real = 0.75) = new(at)
+end
+
+function load(
+    split::TrainTest,
     dataset::Dataset{N, P, F}
 ) where {N<:Name, P<:Problem, F<:Format}
 
-    Random.seed!(split.seed)
-    obsdim = samplesdim(F)
-    shuffle = split.shuffle
-    train = load_raw(N, :train)
-
+    train = load(dataset, :train; dopostprocess = false)
     if !hastest(N)
-        train, test = datasplit(train, obsdim, split.at; shuffle)
+        train, test = data_split(train, samplesdim(F), split.at)
     else
-        test = load_raw(N, :test)
+        test = load(dataset, :test; dopostprocess = false)
     end
+
+    train = postprocess(dataset, train)
+    test = postprocess(dataset, test)
+
     return train, test
 end
 
 struct TrainValidTest <: Split
     at::NTuple{2, Float64}
-    standardize::Bool
-    shuffle::Bool
-    seed::Int64
 
-    function TrainValidTest(;
-        at::NTuple{2, Real} = (0.5, 0.25),
-        standardize = true,
-        shuffle = true,
-        seed = 1234,
-        kwargs...
-    )
-
-        return new(at, standardize, shuffle, seed)
-    end
+    TrainValidTest(at::NTuple{2, Real} = (0.5, 0.25)) = new(at)
 end
 
-function (split::TrainValidTest)(
-    dataset::Dataset{N, P, F}
+function load(
+    split::TrainValidTest,
+    dataset::Dataset{N, P, F},
 ) where {N<:Name, P<:Problem, F<:Format}
 
-    Random.seed!(split.seed)
-    obsdim = samplesdim(F)
     at = split.at
-    shuffle = split.shuffle
-    train = load_raw(N, :train)
+    train = load(dataset, :train; dopostprocess = false)
+    obsdim = samplesdim(F)
 
     if !hasvalid(N) && !hastest(N)
-        train, valid, test = datasplit(train, obsdim, at; shuffle)
+        train, valid, test = data_split(train, obsdim, at)
     elseif !hastest(N)
-        train, test = datasplit(train, obsdim, sum(at); shuffle)
-        valid = load_raw(N, :valid)
+        train, test = data_split(train, obsdim, sum(at))
+        valid = load(dataset, :valid; dopostprocess = false)
     elseif !hasvalid(N)
-        train, valid = datasplit(train, obsdim, sum(at); shuffle)
-        test = load_raw(N, :test)
+        train, valid = data_split(train, obsdim, sum(at))
+        test = load(dataset, :test; dopostprocess = false)
     else
-        valid = load_raw(N, :valid)
-        test = load_raw(N, :test)
+        valid = load(dataset, :valid; dopostprocess = false)
+        test = load(dataset, :test; dopostprocess = false)
     end
+
+    train = postprocess(dataset, train)
+    valid = postprocess(dataset, valid)
+    test = postprocess(dataset, test)
+
     return train, valid, test
 end

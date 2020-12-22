@@ -37,6 +37,4 @@ function save_raw(N::Type{<:Name}, path, type, data; clearpath = true)
     return
 end
 
-
-load_raw(::Dataset{N}, type) where {N <: Name} = load_raw(N, type)
 load_raw(N::Type{<:Name}, type) = load_raw(formattype(N), datapath(N, type))

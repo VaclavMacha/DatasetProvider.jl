@@ -14,7 +14,7 @@ using StatsBase
 
 import MLDatasets
 
-export load_raw, remove, removeall, listdatasets
+export load, remove, removeall, listdatasets
 export Dataset
 export Name
 export Problem, TwoClass, MultiClass
@@ -24,20 +24,37 @@ export Split, TrainTest, TrainValidTest
 # Dataset
 abstract type Name end
 abstract type Problem end
+
+postprocess(::Problem, data) = data
+
 abstract type Format end
+
+saveformat(::Type{<:Format}) = "bson"
+save_raw(::Type{<:Format}, path, data) = BSON.bson(path, data)
+
+function load_raw(::Type{<:Format}, path)
+    dict = BSON.bson(path)
+    return dict[:data], dict[:labels]
+end
+
+postprocess(::Format, data) = data
 
 struct Dataset{N<:Name, P<:Problem, F<:Format}
     problem::P
     format::F
+    shuffle::Bool
+    seed::Int64
 
     function Dataset(
         N::Type{<:Name},
         problem::P,
         format::F;
+        shuffle::Bool = false,
+        seed::Int64 = 1234,
         kwargs...
     ) where {P<:Problem, F<:Format}
 
-        return new{N, P, F}(problem, format)
+        return new{N, P, F}(problem, format, shuffle, seed)
     end
 end
 
@@ -52,6 +69,11 @@ function Base.show(io::IO, ::Dataset{N, P, F}) where {N<:Name, P<:Problem, F<:Fo
     return
 end
 
+function postprocess(dataset::Dataset, data)
+    data = postprocess(dataset.format, data)
+    data = postprocess(dataset.problem, data)
+    return data
+end
 
 # Name
 function hassubset(N::Type{<:Name}, type::Symbol)
@@ -81,6 +103,7 @@ include("saveload.jl")
 include("problems.jl")
 include("formats.jl")
 include("utilities.jl")
+include("postprocessing.jl")
 include("splits.jl")
 
 function __init__()
