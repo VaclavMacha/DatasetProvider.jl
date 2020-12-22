@@ -14,6 +14,9 @@ function MultiClass(labels; binarize = false, poslabels = [], kwargs...)
     if binarize && isempty(poslabels)
         throw(ArgumentError("positive labels must be provided for binarization"))
     end
+    if !isempty(poslabels) && !all(in(poslabels, Ref(labels)))
+        throw(ArgumentError("provided positive labels differ from actual labels"))
+    end
     return MultiClass(labels, binarize, poslabels)
 end
 
