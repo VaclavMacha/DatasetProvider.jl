@@ -45,19 +45,19 @@ struct CIFAR10 <: AbstractCIFAR end
 
 CIFAR10(; kwargs...) = Dataset(CIFAR10; kwargs...)
 modulename(::Type{CIFAR10}) = MLDatasets.CIFAR10
-problem(::Type{CIFAR10}; kwargs...) = MultiClass(collect(1:10); kwargs...)
+problem(::Type{CIFAR10}; kwargs...) = MultiClass(collect(0:9); kwargs...)
 
 struct CIFAR20 <: AbstractCIFAR end
 
 CIFAR20(; kwargs...) = Dataset(CIFAR20; kwargs...)
 modulename(::Type{CIFAR20}) = MLDatasets.CIFAR100
-problem(::Type{CIFAR20}; kwargs...) = MultiClass(collect(1:20); kwargs...)
+problem(::Type{CIFAR20}; kwargs...) = MultiClass(collect(0:19); kwargs...)
 
 struct CIFAR100 <: AbstractCIFAR end
 
 CIFAR100(; kwargs...) = Dataset(CIFAR100; kwargs...)
 modulename(::Type{CIFAR100}) = MLDatasets.CIFAR100
-problem(::Type{CIFAR100}; kwargs...) = MultiClass(collect(1:100); kwargs...)
+problem(::Type{CIFAR100}; kwargs...) = MultiClass(collect(0:99); kwargs...)
 
 # custom load_raw function for CIFAR100
 function load_raw(N::Type{CIFAR100}, type)
