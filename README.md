@@ -39,9 +39,7 @@ julia> split = TrainValidTest((0.6, 0.2))
 TrainValidTest((0.6, 0.2))
 
 julia> dataset = Ionosphere(; shuffle = true, seed = 1234)
-Dataset: Ionosphere
- - TwoClass problem
- - TabularData format
+Ionosphere(TwoClass,TabularData(false),true,1234)
 
 julia> train, valid, test = load(split, dataset);
 
@@ -67,9 +65,7 @@ julia> round.(ns ./ sum(ns); digits = 4)
 
 ```julia
 julia> dataset = Ionosphere(; shuffle = true, seed = 1234, asmatrix = true)
-Dataset: Ionosphere
- - TwoClass problem
- - TabularData format
+Ionosphere(TwoClass,TabularData(true),true,1234)
 
 julia> train, valid, test = load(split, dataset);
 
