@@ -2,8 +2,6 @@ struct TwoClass <: Problem
     TwoClass(; kwargs...) = new()
 end
 
-Base.show(io::IO, ::TwoClass) = println(io, "TwoClass")
-
 struct MultiClass <: Problem
     labels
     binarize
@@ -18,14 +16,6 @@ function MultiClass(labels; binarize = false, poslabels = [], kwargs...)
         throw(ArgumentError("provided positive labels differ from actual labels"))
     end
     return MultiClass(labels, binarize, poslabels)
-end
-
-function Base.show(io::IO, problem::MultiClass)
-    if problem.binarize
-        println(io, "MultiClass(", join((problem.poslabels...,), ","), ")")
-    else
-        println(io, "MultiClass")
-    end
 end
 
 function postprocess(problem::MultiClass, data)

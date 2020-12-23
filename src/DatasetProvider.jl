@@ -39,6 +39,13 @@ end
 
 postprocess(::Format, data) = data
 
+function Base.show(io::IO, type::T) where {T<:Union{Problem, Format}}
+    vals = getfield.(Ref(type), fieldnames(T))
+    vals_str = isempty(vals) ? "" : string("(", join(vals, ","), ")")
+    print(io, nameof(T), vals_str)
+    return
+end
+
 struct Dataset{N<:Name, P<:Problem, F<:Format}
     problem::P
     format::F
@@ -62,10 +69,9 @@ function Dataset(N::Type{<:Name}; kwargs...)
     Dataset(N, problem(N; kwargs...), format(N; kwargs...); kwargs...)
 end
 
-function Base.show(io::IO, ::Dataset{N, P, F}) where {N<:Name, P<:Problem, F<:Format}
-    println(io, "Dataset: ", nameof(N))
-    println(io, " - ", nameof(P), " problem")
-    println(io, " - ", nameof(F), " format")
+function Base.show(io::IO, data::Dataset{N}) where {N<:Name}
+    vals = getfield.(Ref(data), fieldnames(Dataset))
+    print(io, nameof(N), "(", join(vals, ","), ")")
     return
 end
 
