@@ -39,7 +39,6 @@ postprocess(::Problem, data) = data
 
 # Format type
 abstract type Format end
-abstract type Images <: Format end
 
 postprocess(::Format, data) = data
 
@@ -96,8 +95,8 @@ const FORMATS = Ref{Vector{DataType}}(DataType[])
 
 function updatesubtypes!()
     DATASETS[] = concretesubtypes(Name)
-    PROBLEMS[] = subtypes(Problem)
-    FORMATS[] = subtypes(Format)
+    PROBLEMS[] = concretesubtypes(Problem)
+    FORMATS[] = concretesubtypes(Format)
     return
 end
 

@@ -25,8 +25,9 @@ load_raw(N::Type{<:Name}, type) = load_raw(formattype(N), datapath(N, type))
 Returns an array of all concrete subtypes of the given type `T`.
 """
 function concretesubtypes(T::Type)
-    isabstracttype(T) || return DataType[]
-    types = map(subtypes(T)) do S
+    Ts = subtypes(T)
+    isempty(Ts) && return DataType[]
+    types = map(Ts) do S
         return isabstracttype(S) ? concretesubtypes(S) : S
     end
     return reduce(vcat, types)
@@ -71,10 +72,8 @@ function listdatasets()
     Fs = format_subtypes()
 
     for P in Ps
-        isabstracttype(P) && continue
         printstyled("$(nameof(P)): \n"; color = :blue, bold = true)
         for F in Fs
-            isabstracttype(F) && continue
             datasets = [D for D in Ns if problemtype(D) <: P && formattype(D) <: F]
             isempty(datasets) && continue
             printstyled("  $(nameof(F)): \n"; color = :yellow, bold = true)
