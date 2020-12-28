@@ -55,7 +55,7 @@ Removes all downloaded datasets.
 """
 function removeall()
     if DataDeps.input_bool("Do you want to remove all downloaded datasets?")
-        remove.(concretesubtypes(Name))
+        remove.(name_subtypes())
     end
     return
 end
@@ -66,9 +66,9 @@ end
 Prints the names of all available datasets and highlights datasets that have already been downloaded. Datasets are sorted into groups based on their problem type and format type.
 """
 function listdatasets()
-    Ns = datasets()
-    Ps = problems()
-    Fs = formats()
+    Ns = name_subtypes()
+    Ps = problem_subtypes()
+    Fs = format_subtypes()
 
     for P in Ps
         isabstracttype(P) && continue

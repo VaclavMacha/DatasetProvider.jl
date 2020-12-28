@@ -94,21 +94,21 @@ const DATASETS = Ref{Vector{DataType}}(DataType[])
 const PROBLEMS = Ref{Vector{DataType}}(DataType[])
 const FORMATS = Ref{Vector{DataType}}(DataType[])
 
-updatedatasets!() = DATASETS[] = concretesubtypes(Name)
-datasets() = DATASETS[]
+function updatesubtypes!()
+    DATASETS[] = concretesubtypes(Name)
+    PROBLEMS[] = subtypes(Problem)
+    FORMATS[] = subtypes(Format)
+    return
+end
 
-updateproblems!() = PROBLEMS[] = subtypes(Problem)
-problems() = PROBLEMS[]
-
-updateformats!() = FORMATS[] = subtypes(Format)
-formats() = FORMATS[]
+name_subtypes() = DATASETS[]
+problem_subtypes() = PROBLEMS[]
+format_subtypes() = FORMATS[]
 
 function __init__()
-    updatedatasets!()
-    updateproblems!()
-    updateformats!()
+    updatesubtypes!()
 
-    for N in datasets()
+    for N in name_subtypes()
         dep = make_datadep(N)
         isnothing(dep) || register(dep)
     end
