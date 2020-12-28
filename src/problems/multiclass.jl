@@ -1,21 +1,16 @@
-struct TwoClass <: Problem
-    TwoClass(; kwargs...) = new()
-end
-
 struct MultiClass <: Problem
-    labels
     binarize
     poslabels
 end
 
-function MultiClass(labels; binarize = false, poslabels = [], kwargs...)
+function MultiClass(N::Type{<:Name}; binarize = false, poslabels = [], kwargs...)
     if binarize && isempty(poslabels)
         throw(ArgumentError("positive labels must be provided for binarization"))
     end
-    if !isempty(poslabels) && !all(in(poslabels, Ref(labels)))
+    if !isempty(poslabels) && !all(in(poslabels, Ref(classes(N))))
         throw(ArgumentError("provided positive labels differ from actual labels"))
     end
-    return MultiClass(labels, binarize, poslabels)
+    return MultiClass(binarize, poslabels)
 end
 
 function postprocess(problem::MultiClass, data)

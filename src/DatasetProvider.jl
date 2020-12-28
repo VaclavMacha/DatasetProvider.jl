@@ -21,100 +21,97 @@ export Problem, TwoClass, MultiClass
 export Format, TabularData, GreyImages, ColorImages
 export Split, TrainTest, TrainValidTest
 
-# Dataset
+# Name type
 abstract type Name end
+
+const symbtoint = (train = 1, valid = 2, test = 3)
+hassubset(N::Type{<:Name}, type::Int) = ninstances(N)[type] > 0
+hassubset(N::Type{<:Name}, type::Symbol) = hassubset(N, getproperty(symbtoint, type))
+
+hastrain(N::Type{<:Name}) = hassubset(N, :train)
+hasvalid(N::Type{<:Name}) = hassubset(N, :valid)
+hastest(N::Type{<:Name}) = hassubset(N, :test)
+
+# Problem type
 abstract type Problem end
 
 postprocess(::Problem, data) = data
 
+# Format type
 abstract type Format end
-
-saveformat(::Type{<:Format}) = "bson"
-save_raw(::Type{<:Format}, path, data) = BSON.bson(path, data)
-
-function load_raw(::Type{<:Format}, path)
-    dict = BSON.bson(path)
-    return dict[:data], dict[:targets]
-end
+abstract type Images <: Format end
 
 postprocess(::Format, data) = data
 
 function Base.show(io::IO, type::T) where {T<:Union{Problem, Format}}
     vals = getfield.(Ref(type), fieldnames(T))
-    vals_str = isempty(vals) ? "" : string("(", join(vals, ","), ")")
+    vals_str = isempty(vals) ? "" : string("(", join(vals, ", "), ")")
     print(io, nameof(T), vals_str)
     return
 end
 
-struct Dataset{N<:Name, P<:Problem, F<:Format}
-    problem::P
-    format::F
-    shuffle::Bool
-    seed::Int64
-
-    function Dataset(
-        N::Type{<:Name},
-        problem::P,
-        format::F;
-        shuffle::Bool = false,
-        seed::Int64 = 1234,
-        kwargs...
-    ) where {P<:Problem, F<:Format}
-
-        return new{N, P, F}(problem, format, shuffle, seed)
-    end
-end
-
-function Dataset(N::Type{<:Name}; kwargs...)
-    Dataset(N, problem(N; kwargs...), format(N; kwargs...); kwargs...)
-end
-
-function Base.show(io::IO, data::Dataset{N}) where {N<:Name}
-    vals = getfield.(Ref(data), fieldnames(Dataset))
-    print(io, nameof(N), "(", join(vals, ","), ")")
-    return
-end
-
-function postprocess(dataset::Dataset, data)
-    data = postprocess(dataset.format, data)
-    data = postprocess(dataset.problem, data)
-    return copy.(data)
-end
-
-# Name
-function hassubset(N::Type{<:Name}, type::Symbol)
-    return if type == :train
-        hastrain(N)
-    elseif type == :valid
-        hasvalid(N)
-    elseif type == :test
-        hastest(N)
-    else
-        false
-    end
-end
-
-hastrain(::Type{<:Name}) = true
-hasvalid(::Type{<:Name}) = false
-hastest(::Type{<:Name}) = false
-
-function problemtype() end
-function formattype() end
-
-problem(N::Type{<:Name}; kwargs...) = problemtype(N)(; kwargs...)
-format(N::Type{<:Name}; kwargs...) = formattype(N)(; kwargs...)
+# Split type
+abstract type Split end
 
 # Includes
-include("saveload.jl")
-include("problems.jl")
-include("formats.jl")
+include("dataset.jl")
 include("utilities.jl")
 include("postprocessing.jl")
-include("splits.jl")
+
+include.(readdir(joinpath(@__DIR__, "formats"); join = true))
+include.(readdir(joinpath(@__DIR__, "problems"); join = true))
+include.(readdir(joinpath(@__DIR__, "splits"); join = true))
+
+include.(readdir(joinpath(@__DIR__, "datasets", "twoclass"); join = true))
+include.(readdir(joinpath(@__DIR__, "datasets", "multiclass"); join = true))
+include.(readdir(joinpath(@__DIR__, "datasets", "regression"); join = true))
+
+# Dataset registration
+function description(N::Type{<:Name})
+    return """
+    Dataset: $(name(N))
+    Author(s): $(join(author(N), ", "))
+    Website: $(source(N))
+    Licence: $(licence(N))
+    Sample size: $(join(nattributes(N), "x"))
+    Train/validation/test: $(join(ninstances(N), "/"))
+
+    Please respect copyright and use data responsibly. For more details about copyright and license, visit the website mentioned above.
+    """
+end
+
+function make_datadep(N::Type{<:Name})
+    return DataDep(
+        string(nameof(N)),
+        description(N),
+        downloadlink(N),
+        checksum(N);
+        post_fetch_method = fetchmethod(N),
+    )
+end
+
+const DATASETS = Ref{Vector{DataType}}(DataType[])
+const PROBLEMS = Ref{Vector{DataType}}(DataType[])
+const FORMATS = Ref{Vector{DataType}}(DataType[])
+
+updatedatasets!() = DATASETS[] = concretesubtypes(Name)
+datasets() = DATASETS[]
+
+updateproblems!() = PROBLEMS[] = subtypes(Problem)
+problems() = PROBLEMS[]
+
+updateformats!() = FORMATS[] = subtypes(Format)
+formats() = FORMATS[]
 
 function __init__()
-    include.(readdir(joinpath(@__DIR__, "datasets", "uci"); join = true))
-    include(joinpath(@__DIR__, "datasets", "mldatasets.jl"))
+    updatedatasets!()
+    updateproblems!()
+    updateformats!()
+
+    for N in datasets()
+        dep = make_datadep(N)
+        isnothing(dep) || register(dep)
+    end
 end
 
 end # module

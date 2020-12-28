@@ -1,3 +1,15 @@
+struct TabularData <: Format
+    asmatrix::Bool
+end
+
+TabularData(::Type{<:Name}; asmatrix = false, kwargs...) = TabularData(asmatrix)
+samplesdim(::Type{TabularData}) = 1
+saveformat(::Type{TabularData}) = "csv"
+save_raw(::Type{TabularData}, path, data) = CSV.write(path, data)
+load_raw(::Type{TabularData}, path) = CSV.read(path, DataFrame; header = true)
+
+
+# preprocessing
 function csvread(
     path;
     header = false,
@@ -7,15 +19,16 @@ function csvread(
     falsestrings = ["F", "f", "FALSE", "false", "n", "no"],
     kwargs...
 )
-    return CSV.File(
-        path;
+    return CSV.read(
+        path,
+        DataFrame;
         header,
         typemap,
         missingstrings,
         truestrings,
         falsestrings,
         kwargs...
-    ) |> DataFrame
+    )
 end
 
 function column_name(ind, col_categorical, col_targets)
@@ -24,8 +37,10 @@ function column_name(ind, col_categorical, col_targets)
     return Symbol("$(type)$(ind)")
 end
 
-function uciprepare(
-    path;
+function csv_data(
+    N::Type{<:Name},
+    path,
+    type::Symbol;
     col_categorical = Int[],
     col_remove = Int[],
     col_targets::Int = 0,
@@ -65,27 +80,41 @@ function uciprepare(
         select!(table, Not(:targets))
         table.targets = y
     end
-    return table
-end
 
-
-"""
-    datapath(N::Type{<:Name}, type::Symbol)
-
-Returns the path to the file in which the `type` subset of dataset `N` is stored and download the dataset if it not installed yet. Valid subset types are: `:train`, `:valid`, `:test`.
-"""
-function datapath(N::Type{<:Name}, type::Symbol)
-    if !hassubset(N, type)
-        throw(ArgumentError("$(type) subset not provided for $(nameof(N)) dataset"))
-    end
-    F = formattype(N)
-    return joinpath(@datadep_str("$(nameof(N))"), "data_$(type).$(saveformat(F))")
-end
-
-function save_raw(N::Type{<:Name}, path, type, data; clearpath = true)
-    save_raw(formattype(N), datapath(N, type), data)
-    clearpath && rm(path)
+    # save
+    save_raw(N, path, type, table)
     return
 end
 
-load_raw(N::Type{<:Name}, type) = load_raw(formattype(N), datapath(N, type))
+function csv_add_targets(
+    N::Type{<:Name},
+    path,
+    type::Symbol;
+    col_targets::Int = 0,
+    pos_labels = [],
+    kwargs...
+)
+
+    table = load_raw(N, key)
+    targets = csvread(path; kwargs...)[:, col_targets]
+    if !isempty(pos_labels)
+        targets = data_binarize(targets, pos_labels)
+    end
+    table.targets = targets
+
+    # save
+    save_raw(N, path, type, table)
+    return
+end
+
+
+# postprocessing
+function postprocess(format::TabularData, data::AbstractDataFrame)
+    if format.asmatrix
+        y = data.targets
+        x = select(data, Not(:targets))
+        return Array(x), y
+    else
+        return data
+    end
+end

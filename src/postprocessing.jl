@@ -91,6 +91,6 @@ function data_binarize(data::AbstractDataFrame, poslabels)
     return data
 end
 
-data_binarize(y::AbstractVector, poslabels::String) = y .== poslabels
+data_binarize(y::AbstractVector, poslabels::AbstractString) = y .== poslabels
 data_binarize(y::AbstractVector, poslabels::Symbol) = y .== poslabels
 data_binarize(y::AbstractVector, poslabels) = in.(y, Ref(poslabels))
