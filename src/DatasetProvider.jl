@@ -86,7 +86,7 @@ function make_datadep(N::Type{<:Name})
         description(N),
         downloadlink(N),
         checksum(N);
-        post_fetch_method = fetchmethod(N),
+        post_fetch_method = preprocess(N),
     )
 end
 

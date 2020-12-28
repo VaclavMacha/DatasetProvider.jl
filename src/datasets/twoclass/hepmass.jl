@@ -16,7 +16,7 @@ function checksum(::Type{HEPMASS})
     return "becdb27c603c40ba3a746736a224535585b8c19f8d02db7da28d0fc78726c52b"
 end
 
-function fetchmethod(N::Type{HEPMASS})
+function preprocess(N::Type{HEPMASS})
     return [
         path -> csv_data(N, transcode(GzipDecompressor, Mmap.mmap(path)), :train; col_targets = 1, pos_labels = 1, header = true),
         path -> csv_data(N, transcode(GzipDecompressor, Mmap.mmap(path)), :test; col_targets = 1, pos_labels = 1, header = true),

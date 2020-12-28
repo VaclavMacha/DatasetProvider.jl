@@ -13,7 +13,7 @@ function checksum(::Type{Ionosphere})
     return "46d52186b84e20be52918adb93e8fb9926b34795ff7504c24350ae0616a04bbd"
 end
 
-function fetchmethod(N::Type{Ionosphere})
+function preprocess(N::Type{Ionosphere})
     return path -> csv_data(N, path, :train; col_targets = 35, pos_labels = "g")
 end
 

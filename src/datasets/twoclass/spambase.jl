@@ -13,7 +13,7 @@ function checksum(::Type{Spambase})
     return "b1ef93de71f97714d3d7d4f58fc9f718da7bbc8ac8a150eff2778616a8097b12"
 end
 
-function fetchmethod(N::Type{Spambase})
+function preprocess(N::Type{Spambase})
     return path -> csv_data(N, path, :train; col_targets = 58, pos_labels = 1)
 end
 
