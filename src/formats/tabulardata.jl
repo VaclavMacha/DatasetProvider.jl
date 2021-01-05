@@ -78,7 +78,7 @@ function csv_data(
             y = data_binarize(y, pos_labels)
         end
         select!(table, Not(:targets))
-        table.targets = y
+        insertcols!(table, 1, :targets => y)
     end
 
     # save
@@ -100,7 +100,7 @@ function csv_add_targets(
     if !isempty(pos_labels)
         targets = data_binarize(targets, pos_labels)
     end
-    table.targets = targets
+    insertcols!(table, 1, :targets => targets)
 
     # save
     save_raw(N, path, type, table)
