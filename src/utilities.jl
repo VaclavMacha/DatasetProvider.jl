@@ -8,7 +8,7 @@ function datapath(N::Type{<:Name}, type::Symbol)
         throw(ArgumentError("$(type) subset not provided for $(nameof(N)) dataset"))
     end
     F = formattype(N)
-    return joinpath(@datadep_str("$(nameof(N))"), "data_$(type).$(saveformat(F))")
+    return joinpath(@datadep_str(datadepname(N)), "data_$(type).$(saveformat(F))")
 end
 
 function save_raw(N::Type{<:Name}, path, type, data; clearpath = true)
@@ -39,7 +39,7 @@ end
 Removes given dataset `N`, if installed.
 """
 function remove(N::Type{<:Name})
-    path = DataDeps.try_determine_load_path("$(nameof(N))", @__DIR__)
+    path = DataDeps.try_determine_load_path(datadepname(N), @__DIR__)
     if !isnothing(path)
         rm(path; recursive = true)
         printstyled(" ✖ $(nameof(N)) dataset removed \n"; color = :red)
@@ -74,15 +74,15 @@ function listdatasets()
     for P in Ps
         printstyled("$(nameof(P)): \n"; color = :blue, bold = true)
         for F in Fs
-            datasets = [D for D in Ns if problemtype(D) <: P && formattype(D) <: F]
+            datasets = [N for N in Ns if problemtype(N) <: P && formattype(N) <: F]
             isempty(datasets) && continue
             printstyled("  $(nameof(F)): \n"; color = :yellow, bold = true)
-            for D in datasets
-                path = DataDeps.try_determine_load_path("$(nameof(D))", @__DIR__)
+            for N in datasets
+                path = DataDeps.try_determine_load_path(datadepname(N), @__DIR__)
                 if isnothing(path)
-                    printstyled("    ✖ $(nameof(D)) \n"; color = :red)
+                    printstyled("    ✖ $(nameof(N)) \n"; color = :red)
                 else
-                    printstyled("    ✔ $(nameof(D)) \n"; color = :green, bold = true)
+                    printstyled("    ✔ $(nameof(N)) \n"; color = :green, bold = true)
                 end
             end
         end

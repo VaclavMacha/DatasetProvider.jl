@@ -32,6 +32,8 @@ hastrain(N::Type{<:Name}) = hassubset(N, :train)
 hasvalid(N::Type{<:Name}) = hassubset(N, :valid)
 hastest(N::Type{<:Name}) = hassubset(N, :test)
 
+datadepname(N::Type{<:Name}) = string(nameof(N))
+
 # Problem type
 abstract type Problem end
 
@@ -80,7 +82,7 @@ end
 
 function make_datadep(N::Type{<:Name})
     return DataDep(
-        string(nameof(N)),
+        datadepname(N),
         description(N),
         downloadlink(N),
         checksum(N);

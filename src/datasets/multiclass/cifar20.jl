@@ -10,6 +10,7 @@ function downloadlink(::Type{CIFAR20})
 end
 
 make_datadep(::Type{CIFAR20}) = nothing
+datadepname(::Type{CIFAR20}) = "CIFAR100"
 
 function load_raw(::Type{CIFAR20}, type)
     if type == :train

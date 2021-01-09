@@ -6,7 +6,7 @@ function source(::Type{CIFAR100})
 end
 
 function downloadlink(::Type{CIFAR100})
-    return "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
+    return "https://www.cs.toronto.edu/~kriz/cifar-100-binary.tar.gz"
 end
 
 make_datadep(::Type{CIFAR100}) = nothing

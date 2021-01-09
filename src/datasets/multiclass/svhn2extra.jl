@@ -14,6 +14,7 @@ function downloadlink(::Type{SVHN2Extra})
 end
 
 make_datadep(::Type{SVHN2Extra}) = nothing
+datadepname(::Type{SVHN2Extra}) = "SVHN2"
 
 function load_raw(::Type{SVHN2Extra}, type)
     if type == :train
