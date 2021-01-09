@@ -63,7 +63,6 @@ include.(readdir(joinpath(@__DIR__, "splits"); join = true))
 
 include.(readdir(joinpath(@__DIR__, "datasets", "twoclass"); join = true))
 include.(readdir(joinpath(@__DIR__, "datasets", "multiclass"); join = true))
-include.(readdir(joinpath(@__DIR__, "datasets", "regression"); join = true))
 
 # Dataset registration
 function description(N::Type{<:Name})
