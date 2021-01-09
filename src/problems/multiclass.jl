@@ -7,7 +7,7 @@ function MultiClass(N::Type{<:Name}; binarize = false, poslabels = [], kwargs...
     if binarize && isempty(poslabels)
         throw(ArgumentError("positive labels must be provided for binarization"))
     end
-    if !isempty(poslabels) && !all(in(poslabels, Ref(classes(N))))
+    if !isempty(poslabels) && !all(in.(poslabels, Ref(classes(N))))
         throw(ArgumentError("provided positive labels differ from actual labels"))
     end
     return MultiClass(binarize, poslabels)
