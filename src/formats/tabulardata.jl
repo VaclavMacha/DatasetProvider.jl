@@ -95,7 +95,7 @@ function csv_add_targets(
     kwargs...
 )
 
-    table = load_raw(N, key)
+    table = load_raw(N, type)
     targets = csvread(path; kwargs...)[:, col_targets]
     if !isempty(pos_labels)
         targets = data_binarize(targets, pos_labels)
