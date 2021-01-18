@@ -17,10 +17,13 @@ function csvread(
     missingstrings = ["", "NA", "?", "*", "#DIV/0!"],
     truestrings = ["T", "t", "TRUE", "true", "y", "yes"],
     falsestrings = ["F", "f", "FALSE", "false", "n", "no"],
+    gzip::Bool = false,
     kwargs...
 )
+    file = gzip ? transcode(GzipDecompressor, Mmap.mmap(path)) : path
+
     return CSV.read(
-        path,
+        file,
         DataFrame;
         header,
         typemap,

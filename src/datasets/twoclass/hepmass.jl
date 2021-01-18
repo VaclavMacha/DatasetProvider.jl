@@ -18,8 +18,8 @@ end
 
 function preprocess(N::Type{HEPMASS})
     return [
-        path -> csv_data(N, transcode(GzipDecompressor, Mmap.mmap(path)), :train; col_targets = 1, pos_labels = 1, header = true),
-        path -> csv_data(N, transcode(GzipDecompressor, Mmap.mmap(path)), :test; col_targets = 1, pos_labels = 1, header = true),
+        path -> csv_data(N, path, :train; col_targets = 1, pos_labels = 1, header = true, gzip = true),
+        path -> csv_data(N, path, :test; col_targets = 1, pos_labels = 1, header = true, gzip = true),
     ]
 end
 
