@@ -44,7 +44,7 @@ end
 
 # data description
 problemtype(::Type{SVHN2}) = MultiClass
-formattype(::Type{SVHN2}) = GrayImages
+formattype(::Type{SVHN2}) = ColorImages
 nclasses(::Type{SVHN2}) = 10
 classes(::Type{SVHN2}) = collect(1:10)
 classes_orig(::Type{SVHN2}) = collect(0:9)

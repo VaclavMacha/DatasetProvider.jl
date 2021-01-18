@@ -49,7 +49,7 @@ end
 
 # data description
 problemtype(::Type{SVHN2Extra}) = MultiClass
-formattype(::Type{SVHN2Extra}) = GrayImages
+formattype(::Type{SVHN2Extra}) = ColorImages
 nclasses(::Type{SVHN2Extra}) = 10
 classes(::Type{SVHN2Extra}) = collect(1:10)
 classes_orig(::Type{SVHN2Extra}) = collect(0:9)
