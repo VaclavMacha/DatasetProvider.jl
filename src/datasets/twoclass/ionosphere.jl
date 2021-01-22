@@ -14,7 +14,7 @@ function checksum(::Type{Ionosphere})
 end
 
 function preprocess(N::Type{Ionosphere})
-    return path -> csv_data(N, path, :train; col_targets = 35, pos_labels = "g")
+    return path -> csv_data(N, path, :train; col_targets = 35, pos_labels = "b")
 end
 
 
