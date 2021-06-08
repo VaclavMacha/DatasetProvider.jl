@@ -1,28 +1,26 @@
-struct Ionosphere <: Name end
-
-# download options
-function source(::Type{Ionosphere})
-    return "http://archive.ics.uci.edu/ml/datasets/Ionosphere"
+struct Ionosphere{F, T} <: Name{F, T}
+    Ionosphere() = new{TabularData, TwoClass}()
 end
 
-function downloadlink(::Type{Ionosphere})
+# mandatory methods
+nattributes(::Ionosphere) = (34, )
+ninstances(::Ionosphere) = (351, 0, 0)
+source(::Ionosphere) = "http://archive.ics.uci.edu/ml/datasets/Ionosphere"
+checksum(::Ionosphere) = "46d52186b84e20be52918adb93e8fb9926b34795ff7504c24350ae0616a04bbd"
+
+function downloadlink(::Ionosphere)
     return "https://archive.ics.uci.edu/ml/machine-learning-databases/ionosphere/ionosphere.data"
 end
 
-function checksum(::Type{Ionosphere})
-    return "46d52186b84e20be52918adb93e8fb9926b34795ff7504c24350ae0616a04bbd"
-end
-
-function preprocess(N::Type{Ionosphere})
+function preprocess(N::Ionosphere)
     return path -> csv_data(N, path, :train; col_targets = 35, pos_labels = "b")
 end
 
+# optional methods
+name(::Ionosphere) = "Johns Hopkins University Ionosphere database"
+author(::Ionosphere) = ["Vince Sigillito"]
 
-# dataset description
-name(::Type{Ionosphere}) = "Johns Hopkins University Ionosphere database"
-author(::Type{Ionosphere}) = ["Vince Sigillito"]
-licence(::Type{Ionosphere}) = ""
-function citation(::Type{Ionosphere})
+function citation(::Ionosphere)
     return """
     @article{sigillito1989classification,
         title = {Classification of radar returns from the ionosphere using neural networks},
@@ -35,11 +33,3 @@ function citation(::Type{Ionosphere})
     }
     """
 end
-
-
-# data description
-problemtype(::Type{Ionosphere}) = TwoClass
-formattype(::Type{Ionosphere}) = TabularData
-nclasses(::Type{Ionosphere}) = 2
-nattributes(::Type{Ionosphere}) = (34, )
-ninstances(::Type{Ionosphere}) = (351, 0, 0)

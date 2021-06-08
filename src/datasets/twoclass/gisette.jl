@@ -1,21 +1,22 @@
 struct Gisette <: Name end
 
 # download options
+problem(::Type{Gisette}) = TwoClass
+format(::Type{Gisette}) = TabularData
+nattributes(::Type{Gisette}) = (5000, )
+ninstances(::Type{Gisette}) = (6000, 1000, 0)
+
 function source(::Type{Gisette})
     return "http://archive.ics.uci.edu/ml/datasets/gisette"
 end
 
 function downloadlink(::Type{Gisette})
-    return [
-        "https://archive.ics.uci.edu/ml/machine-learning-databases/gisette/GISETTE/gisette_train.data",
-        "https://archive.ics.uci.edu/ml/machine-learning-databases/gisette/GISETTE/gisette_train.labels",
-        "https://archive.ics.uci.edu/ml/machine-learning-databases/gisette/GISETTE/gisette_valid.data",
-        "https://archive.ics.uci.edu/ml/machine-learning-databases/gisette/gisette_valid.labels"
+    return "https://archive.ics.uci.edu/ml/machine-learning-databases/gisette/" .* [
+        "GISETTE/gisette_train.data",
+        "GISETTE/gisette_train.labels",
+        "GISETTE/gisette_valid.data",
+        "gisette_valid.labels"
     ]
-end
-
-function checksum(::Type{Gisette})
-    return "d5a3e85f7db845564b066f01818a86b70bc2beefa2af3737abfc8a156b30a96d"
 end
 
 function preprocess(N::Type{Gisette})
@@ -27,17 +28,10 @@ function preprocess(N::Type{Gisette})
     ]
 end
 
-
 # dataset description
+function checksum(::Type{Gisette})
+    return "d5a3e85f7db845564b066f01818a86b70bc2beefa2af3737abfc8a156b30a96d"
+end
+
 name(::Type{Gisette}) = "Gisette"
 author(::Type{Gisette}) = ["Isabelle Guyon"]
-licence(::Type{Gisette}) = ""
-citation(::Type{Gisette}) = ""
-
-
-# data description
-problemtype(::Type{Gisette}) = TwoClass
-formattype(::Type{Gisette}) = TabularData
-nclasses(::Type{Gisette}) = 2
-nattributes(::Type{Gisette}) = (5000, )
-ninstances(::Type{Gisette}) = (6000, 1000, 0)
