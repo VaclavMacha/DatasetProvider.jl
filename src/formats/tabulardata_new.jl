@@ -1,10 +1,5 @@
 struct TabularData <: Format end
 
-samplesdim(::Type{TabularData}) = 1
-saveformat(::Type{TabularData}) = "csv"
-save_raw(::Type{TabularData}, path, data) = CSV.write(path, data)
-load_raw(::Type{TabularData}, path) = CSV.read(path, DataFrame; header = true)
-
 function args(
     ::Type{TabularData};
     asmatrix = false,
@@ -15,11 +10,16 @@ function args(
     return (; asmatrix, origheader)
 end
 
-# preprocessing
+obsdim(::Type{TabularData}) = 1
+saveformat(::Type{TabularData}) = "csv"
+saveraw(::Type{TabularData}, path, data) = CSV.write(path, data)
+loadraw(::Type{TabularData}, path) = CSV.read(path, DataFrame; header = true)
+
+
+# csv read
 function csvread(
     path;
     header = false,
-    typemap = Dict(Date => String, DateTime => String),
     missingstrings = ["", "NA", "?", "*", "#DIV/0!"],
     truestrings = ["T", "t", "TRUE", "true", "y", "yes"],
     falsestrings = ["F", "f", "FALSE", "false", "n", "no"],
@@ -32,7 +32,6 @@ function csvread(
         file,
         DataFrame;
         header,
-        typemap,
         missingstrings,
         truestrings,
         falsestrings,
@@ -40,46 +39,53 @@ function csvread(
     )
 end
 
-function column_name(ind, col_categorical, col_targets)
-    ind == col_targets && return :targets
-    type = in(ind, col_categorical) ? "cat" : "num"
-    return Symbol("$(type)$(ind)")
+# column rename
+colname(::Type{<:Union{Missing, AbstractFloat}}) = "real"
+colname(::Type{<:Union{Missing, Integer}}) = "int"
+colname(::Type{<:Union{Missing, AbstractString}}) = "str"
+
+function makeunique!(names::Vector{<:String})
+    pad = Dict(key => ndigits(sum(names .== key)) for key in unique(names))
+    count = Dict{String, Int}()
+    for i in eachindex(names)
+        key = names[i]
+        names[i] = string(key, "_", lpad(get!(count, key, 1), pad[key], "0"))
+        count[key] += 1
+    end
+    return
 end
 
-function csv_data(
-    N::Type{<:Name},
+function colnames(df::AbstractDataFrame, categorical, targets, toremove)
+    col_names = names(df)
+    for (i, name) in enumerate(col_names)
+        if in(i, toremove)
+            col_names[i] = "rm"
+        elseif in(i, targets)
+            col_names[i] = "target"
+        elseif in(i, categorical)
+            col_names[i] = "cat"
+        else
+            col_names[i] = colname(eltype(getproperty(df, name)))
+        end
+    end
+    makeunique!(col_names)
+    return col_names
+end
+
+function preprocess(
+    name::Name{},
     path,
     type::Symbol;
-    col_categorical = Int[],
-    col_remove = Int[],
-    col_targets::Int = 0,
+    categorical = Int[],
+    toremove = Int[],
+    targets = Int[],
     pos_labels = [],
     header = false,
     kwargs...
 )
 
-    table = csvread(path; header, kwargs...)
-
-    # rename and remove columns
-    cols_remove = Int[]
-    cols_names = Symbol[]
-    id = 1
-    for (col, name) in enumerate(propertynames(table))
-        if in(col, col_remove)
-            push!(cols_remove, col)
-        elseif col == col_targets
-            name = :targets
-        elseif in(col, col_categorical)
-            name = Symbol("cat", id)
-            id += 1
-        else
-            name = Symbol("num", id)
-            id += 1
-        end
-        push!(cols_names, name)
-    end
-    rename!(table, cols_names)
-    select!(table, Not(cols_remove))
+    df = csvread(path; header, kwargs...)
+    rename!(df, colnames(df, categorical, targets, toremove))
 
     # change targets position and binarize
     if hasproperty(table, :targets)

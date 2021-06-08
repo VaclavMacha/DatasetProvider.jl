@@ -17,42 +17,13 @@ import MLDatasets
 export load, remove, removeall, listdatasets
 export Dataset
 export Name
-export Problem, TwoClass, MultiClass
+export Task, TwoClass, MultiClass
 export Format, TabularData, GreyImages, ColorImages
 export Split, TrainTest, TrainValidTest
 
-# Name type
-abstract type Name end
+# Types
 
-const symbtoint = (train = 1, valid = 2, test = 3)
-hassubset(N::Type{<:Name}, type::Int) = ninstances(N)[type] > 0
-hassubset(N::Type{<:Name}, type::Symbol) = hassubset(N, getproperty(symbtoint, type))
 
-hastrain(N::Type{<:Name}) = hassubset(N, :train)
-hasvalid(N::Type{<:Name}) = hassubset(N, :valid)
-hastest(N::Type{<:Name}) = hassubset(N, :test)
-
-datadepname(N::Type{<:Name}) = string(nameof(N))
-
-# Problem type
-abstract type Problem end
-
-postprocess(::Problem, data) = data
-
-# Format type
-abstract type Format end
-
-postprocess(::Format, data) = data
-
-function Base.show(io::IO, type::T) where {T<:Union{Problem, Format}}
-    vals = getfield.(Ref(type), fieldnames(T))
-    vals_str = isempty(vals) ? "" : string("(", join(vals, ", "), ")")
-    print(io, nameof(T), vals_str)
-    return
-end
-
-# Split type
-abstract type Split end
 
 # Includes
 include("dataset.jl")
@@ -96,7 +67,7 @@ const FORMATS = Ref{Vector{DataType}}(DataType[])
 
 function updatesubtypes!()
     DATASETS[] = concretesubtypes(Name)
-    PROBLEMS[] = concretesubtypes(Problem)
+    PROBLEMS[] = concretesubtypes(Task)
     FORMATS[] = concretesubtypes(Format)
     return
 end
