@@ -16,8 +16,10 @@ function datapath(N::Type{<:Name}, type::Symbol)
         throw(ArgumentError("$(type) subset not provided for $(nameof(N)) dataset"))
     end
     ext = saveformat(format(N))
-    return joinpath(@datadep_str(datadepname(N)), "data_$(type).$(ext)")
+    return joinpath(datadir(N), "data_$(type).$(ext)")
 end
+
+datadir(N::Type{<:Name}) = @datadep_str(datadepname(N))
 
 function saveraw(N::Type{<:Name}, path, type, data; clearpath = true)
     saveraw(format(N), datapath(N, type), data)
@@ -25,4 +27,8 @@ function saveraw(N::Type{<:Name}, path, type, data; clearpath = true)
     return
 end
 
-loadraw(N::Type{<:Name}, type) = load_raw(format(N), datapath(N, type))
+loadraw(N::Type{<:Name}, type) = loadraw(format(N), datapath(N, type))
+
+hasmeta(N::Type{<:Name}) = isfile(joinpath(datadir(N), "meta.bson"))
+savemeta(N::Type{<:Name}, meta) = BSON.bson(joinpath(datadir(N), "meta.bson"), meta)
+loadmeta(N::Type{<:Name}) = BSON.load(joinpath(datadir(N), "meta.bson"))
