@@ -17,9 +17,9 @@ end
 function preprocess(N::Type{Gisette})
     return [
         path -> preprocess_csv(N, path, :train; toremove = 5001)
-        path -> csv_add_targets(N, path, :train; istarget = 1)
+        path -> preprocess_targets(N, path, :train)
         path -> preprocess_csv(N, path, :valid; toremove = 5001)
-        path -> csv_add_targets(N, path, :valid; istarget = 1)
+        path -> preprocess_targets(N, path, :valid)
     ]
 end
 

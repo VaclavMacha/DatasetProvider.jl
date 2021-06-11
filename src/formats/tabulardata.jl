@@ -74,7 +74,6 @@ end
 function csvread(
     path;
     header = false,
-    typemap = Dict(Date => String, DateTime => String),
     missingstrings = ["", "NA", "?", "*", "#DIV/0!"],
     truestrings = ["T", "t", "TRUE", "true", "y", "yes"],
     falsestrings = ["F", "f", "FALSE", "false", "n", "no"],
@@ -87,7 +86,6 @@ function csvread(
         file,
         DataFrame;
         header,
-        typemap,
         missingstrings,
         truestrings,
         falsestrings,
@@ -116,8 +114,8 @@ function preprocess_csv(
     end
 
     # rename and remove columns
-    table = table[:, meta[:permutation]]
-    rename!(table, meta[:header])
+    rename!(table, Pair.(meta[:header_original], meta[:header]))
+    select!(table, meta[:header])
 
     # save
     saveraw(N, path, type, table)
@@ -135,9 +133,9 @@ function preprocess_targets(
     targets = csvread(path; kwargs...)
     k = size(targets, 2)
     pad = k == 1 ? 0 : ndigits(k)
-    for (i, key) in enumerate(names(targets))
-        t_key = add_pad(key, i, pad)
-        insertcols!(table, i, t_key => targets[:, key])
+    for (i, col) in enumerate(eachcol(targets))
+        key = add_pad("target", i, pad)
+        insertcols!(table, i, key => col)
     end
 
     # save
@@ -162,7 +160,7 @@ function postprocess(
         return x, y
     else
         meta = loadmeta(N)
-        origheader && rename!(table, meta[:header_original])
+        origheader && rename!(table, Pair.(meta[:header], meta[:header_original]))
         return table
     end
 end
