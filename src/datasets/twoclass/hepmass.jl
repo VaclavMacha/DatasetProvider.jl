@@ -1,14 +1,9 @@
 struct HEPMASS <: Name end
 
 # mandatory methods
-problem(::Type{HEPMASS}) = TwoClass
 format(::Type{HEPMASS}) = TabularData
-nattributes(::Type{HEPMASS}) = (28, )
-ninstances(::Type{HEPMASS}) = (7000000, 0, 3500000)
-
-function source(::Type{HEPMASS})
-    return "https://archive.ics.uci.edu/ml/datasets/HEPMASS"
-end
+task(::Type{HEPMASS}) = TwoClass
+source(::Type{HEPMASS}) = "https://archive.ics.uci.edu/ml/datasets/HEPMASS"
 
 function downloadlink(::Type{HEPMASS})
     return "https://archive.ics.uci.edu/ml/machine-learning-databases/00347/" .* [
@@ -18,12 +13,16 @@ function downloadlink(::Type{HEPMASS})
 end
 
 function preprocess(N::Type{HEPMASS})
-    kwargs = (col_targets = 1, pos_labels = 1, header = true, gzip = true)
+    kwargs = (istarget = 1, header = true, gzip = true)
     return [
-        path -> csv_data(N, path, :train; kwargs...),
-        path -> csv_data(N, path, :test; kwargs...),
+        path -> preprocess_csv(N, path, :train; kwargs...),
+        path -> preprocess_csv(N, path, :test; kwargs...),
     ]
 end
+
+nattributes(::Type{HEPMASS}) = (28, )
+ninstances(::Type{HEPMASS}) = (7000000, 0, 3500000)
+positivelabel(::Type{HEPMASS}) = 1
 
 # optional methods
 function checksum(::Type{HEPMASS})

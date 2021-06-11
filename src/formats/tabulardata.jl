@@ -2,8 +2,8 @@ struct TabularData <: Format end
 
 samplesdim(::Type{TabularData}) = 1
 saveformat(::Type{TabularData}) = "csv"
-save_raw(::Type{TabularData}, path, data) = CSV.write(path, data)
-load_raw(::Type{TabularData}, path) = CSV.read(path, DataFrame; header = true)
+saveraw(::Type{TabularData}, path, data) = CSV.write(path, data)
+loadraw(::Type{TabularData}, path) = CSV.read(path, DataFrame; header = true)
 
 function args(
     ::Type{TabularData};
@@ -15,7 +15,62 @@ function args(
     return (; asmatrix, origheader)
 end
 
-# preprocessing
+# meta data 
+colname(::Type) = "col"
+colname(::Type{<:Union{Missing, Real}}) = "real"
+colname(::Type{<:Union{Missing, AbstractString}}) = "str"
+colname(::Type{<:Union{Missing, Date}}) = "date"
+
+function compute_pad(key, colnames)
+    c = count(==(key), colnames)
+    return c == 1 ? 0 : ndigits(c)
+end
+
+function add_pad(key, i, pad)
+    if pad == 0
+        return key
+    else
+        return string(key, "_", lpad(i, pad, "0"))
+    end
+end
+
+function compute_meta(
+    ::Type{TabularData},
+    table::AbstractDataFrame,
+    istarget,
+    iscategorical,
+    toremove
+)
+
+    n = size(table, 2)
+    inds = setdiff(1:n, vcat(istarget, iscategorical, toremove))
+    types = [colname(eltype(table[!, i])) for i in inds]
+    types_prm = sortperm(types)
+
+    # column permutation
+    prm = vcat(istarget..., iscategorical..., inds[types_prm]...)
+    header = vcat(
+        fill("target", length(istarget))...,
+        fill("cat", length(iscategorical))...,
+        types[types_prm]...
+    )
+    col_pad = Dict(key => compute_pad(key, header) for key in unique(header))
+    counter = Dict{String, Int}()
+    
+    header = map(header) do key 
+        i = get!(counter, key, 1)
+        counter[key] += 1
+        return add_pad(key, i, col_pad[key])
+    end
+
+    return Dict(
+        :header => header,
+        :header_original => names(table)[prm],
+        :permutation => prm,
+    )
+end
+
+# csv utilities
 function csvread(
     path;
     header = false,
@@ -40,91 +95,74 @@ function csvread(
     )
 end
 
-function column_name(ind, col_categorical, col_targets)
-    ind == col_targets && return :targets
-    type = in(ind, col_categorical) ? "cat" : "num"
-    return Symbol("$(type)$(ind)")
-end
-
-function csv_data(
+function preprocess_csv(
     N::Type{<:Name},
     path,
     type::Symbol;
-    col_categorical = Int[],
-    col_remove = Int[],
-    col_targets::Int = 0,
-    pos_labels = [],
+    istarget = Int[],
+    iscategorical = Int[],
+    toremove = Int[],
     header = false,
     kwargs...
 )
 
+    # read table and metadata
     table = csvread(path; header, kwargs...)
+    if hasmeta(N)
+        meta = loadmeta(N)
+    else
+        meta = compute_meta(TabularData, table, istarget, iscategorical, toremove)
+        savemeta(N, meta)
+    end
 
     # rename and remove columns
-    cols_remove = Int[]
-    cols_names = Symbol[]
-    id = 1
-    for (col, name) in enumerate(propertynames(table))
-        if in(col, col_remove)
-            push!(cols_remove, col)
-        elseif col == col_targets
-            name = :targets
-        elseif in(col, col_categorical)
-            name = Symbol("cat", id)
-            id += 1
-        else
-            name = Symbol("num", id)
-            id += 1
-        end
-        push!(cols_names, name)
-    end
-    rename!(table, cols_names)
-    select!(table, Not(cols_remove))
-
-    # change targets position and binarize
-    if hasproperty(table, :targets)
-        y = table.targets
-        if !isempty(pos_labels)
-            y = data_binarize(y, pos_labels)
-        end
-        select!(table, Not(:targets))
-        insertcols!(table, 1, :targets => y)
-    end
+    table = table[:, meta[:permutation]]
+    rename!(table, meta[:header])
 
     # save
-    CSV.write(path, data)
+    saveraw(N, path, type, table)
     return
 end
 
-function csv_add_targets(
+function preprocess_targets(
     N::Type{<:Name},
     path,
     type::Symbol;
-    col_targets::Int = 0,
-    pos_labels = [],
     kwargs...
 )
 
-    table = load_raw(N, type)
-    targets = csvread(path; kwargs...)[:, col_targets]
-    if !isempty(pos_labels)
-        targets = data_binarize(targets, pos_labels)
+    table = loadraw(N, type)
+    targets = csvread(path; kwargs...)
+    k = size(targets, 2)
+    pad = k == 1 ? 0 : ndigits(k)
+    for (i, key) in enumerate(names(targets))
+        t_key = add_pad(key, i, pad)
+        insertcols!(table, i, t_key => targets[:, key])
     end
-    insertcols!(table, 1, :targets => targets)
 
     # save
-    save_raw(N, path, type, table)
+    saveraw(N, path, type, table)
     return
 end
 
 
 # postprocessing
-function postprocess(format::TabularData, data::AbstractDataFrame)
-    if format.asmatrix
-        y = data.targets
-        x = select(data, Not(:targets))
-        return Array(x), y
+function postprocess(
+    ::TabularData,
+    table::AbstractDataFrame;
+    asmatrix,
+    origheader,
+    kwargs...
+    )
+
+    if asmatrix
+        target = filter(contains("target"), names(table))
+        y = select(table, target) |> Array
+        x = select(table, Not(target)) |> Array
+        return x, y
     else
-        return data
+        meta = loadmeta(N)
+        origheader && rename!(table, meta[:header_original])
+        return table
     end
 end

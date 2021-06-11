@@ -1,14 +1,9 @@
 struct Gisette <: Name end
 
-# download options
-problem(::Type{Gisette}) = TwoClass
+# mandatory methods
 format(::Type{Gisette}) = TabularData
-nattributes(::Type{Gisette}) = (5000, )
-ninstances(::Type{Gisette}) = (6000, 1000, 0)
-
-function source(::Type{Gisette})
-    return "http://archive.ics.uci.edu/ml/datasets/gisette"
-end
+task(::Type{Gisette}) = TwoClass
+source(::Type{Gisette}) = "http://archive.ics.uci.edu/ml/datasets/gisette"
 
 function downloadlink(::Type{Gisette})
     return "https://archive.ics.uci.edu/ml/machine-learning-databases/gisette/" .* [
@@ -21,14 +16,18 @@ end
 
 function preprocess(N::Type{Gisette})
     return [
-        path -> csv_data(N, path, :train; col_remove = 5001)
-        path -> csv_add_targets(N, path, :train; col_targets = 1, pos_labels = 1)
-        path -> csv_data(N, path, :valid; col_remove = 5001)
-        path -> csv_add_targets(N, path, :valid; col_targets = 1, pos_labels = 1)
+        path -> preprocess_csv(N, path, :train; toremove = 5001)
+        path -> csv_add_targets(N, path, :train; istarget = 1)
+        path -> preprocess_csv(N, path, :valid; toremove = 5001)
+        path -> csv_add_targets(N, path, :valid; istarget = 1)
     ]
 end
 
-# dataset description
+nattributes(::Type{Gisette}) = (5000, )
+ninstances(::Type{Gisette}) = (6000, 1000, 0)
+positivelabel(::Type{Gisette}) = 1
+
+# optional methods
 function checksum(::Type{Gisette})
     return "d5a3e85f7db845564b066f01818a86b70bc2beefa2af3737abfc8a156b30a96d"
 end

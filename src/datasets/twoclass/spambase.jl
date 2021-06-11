@@ -1,22 +1,21 @@
 struct Spambase <: Name end
 
 # mandatory methods
-problem(::Type{Spambase}) = TwoClass
 format(::Type{Spambase}) = TabularData
-nattributes(::Type{Spambase}) = (57,)
-ninstances(::Type{Spambase}) = (4601, 0, 0)
-
-function source(::Type{Spambase})
-    return "http://archive.ics.uci.edu/ml/datasets/spambase"
-end
+task(::Type{Spambase}) = TwoClass
+source(::Type{Spambase}) = "http://archive.ics.uci.edu/ml/datasets/spambase"
 
 function downloadlink(::Type{Spambase})
     return "https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data"
 end
 
 function preprocess(N::Type{Spambase})
-    return path -> csv_data(N, path, :train; col_targets = 58, pos_labels = 1)
+    return path -> preprocess_csv(N, path, :train; istarget = 58)
 end
+
+nattributes(::Type{Spambase}) = (57, )
+ninstances(::Type{Spambase}) = (4601, 0, 0)
+positivelabel(::Type{Spambase}) = 1
 
 # optional methods
 function checksum(::Type{Spambase})
@@ -24,7 +23,6 @@ function checksum(::Type{Spambase})
 end
 
 name(::Type{Spambase}) = "Spam e-mail database"
-
 function author(::Type{Spambase})
     return ["Mark Hopkins", "Erik Reeber", "George Forman", "Jaap Suermondt"]
 end
