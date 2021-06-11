@@ -28,7 +28,7 @@ include("utilities.jl")
 include("postprocessing.jl")
 
 include.(readdir(joinpath(@__DIR__, "formats"); join = true))
-include.(readdir(joinpath(@__DIR__, "problems"); join = true))
+include.(readdir(joinpath(@__DIR__, "tasks"); join = true))
 # include.(readdir(joinpath(@__DIR__, "splits"); join = true))
 
 include.(readdir(joinpath(@__DIR__, "datasets", "twoclass"); join = true))
