@@ -26,6 +26,14 @@ end
 name(::Type{Ionosphere}) = "Johns Hopkins University Ionosphere database"
 author(::Type{Ionosphere}) = ["Vince Sigillito"]
 
+function licence(::Type{Gisette})
+    return """
+    This data set is licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0) license. This allows for the sharing and adaptation of the datasets for any purpose, provided that the appropriate credit is given.
+
+    URL: https://creativecommons.org/licenses/by/4.0/legalcode
+    """
+end
+
 function citation(::Type{Ionosphere})
     return """
     @article{sigillito1989classification,

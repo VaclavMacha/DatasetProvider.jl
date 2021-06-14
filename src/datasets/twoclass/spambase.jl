@@ -26,3 +26,22 @@ name(::Type{Spambase}) = "Spam e-mail database"
 function author(::Type{Spambase})
     return ["Mark Hopkins", "Erik Reeber", "George Forman", "Jaap Suermondt"]
 end
+
+function licence(::Type{Gisette})
+    return """
+    This data set is licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0) license. This allows for the sharing and adaptation of the datasets for any purpose, provided that the appropriate credit is given.
+
+    URL: https://creativecommons.org/licenses/by/4.0/legalcode
+    """
+end
+
+function citation(::Type{Gisette})
+    return """
+    @misc{misc_spambase_94,
+        author       = {Hopkins, Mark, Reeber, Erik, Forman, George & Suermondt, Jaap},
+        title        = {{Spambase}},
+        year         = {1999},
+        howpublished = {UCI Machine Learning Repository}
+    }
+    """
+end

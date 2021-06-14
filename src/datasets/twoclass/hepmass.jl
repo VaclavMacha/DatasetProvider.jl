@@ -31,3 +31,21 @@ end
 
 name(::Type{HEPMASS}) = "HEPMASS"
 author(::Type{HEPMASS}) = ["Daniel Whiteson"]
+
+function licence(::Type{HEPMASS})
+    return """
+    This data set is licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0) license. This allows for the sharing and adaptation of the datasets for any purpose, provided that the appropriate credit is given.
+
+    URL: https://creativecommons.org/licenses/by/4.0/legalcode
+    """
+end
+
+function citation(::Type{HEPMASS})
+    return """
+    @misc{misc_hepmass_347,
+        title        = {{HEPMASS}},
+        year         = {2016},
+        howpublished = {UCI Machine Learning Repository}
+    }
+    """
+end
