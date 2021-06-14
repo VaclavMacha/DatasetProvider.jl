@@ -1,5 +1,5 @@
 hassubset(N::Type{<:Name}, type::Symbol) = hassubset(N, Val(type))
-function hassubset(::Type{<:Name}, ::Val)
+function hassubset(::Type{<:Name}, type::Val)
     throw(ArgumentError("$(type) subset not supported. Possible choices: :train, :valid, :test"))
 end
 hassubset(N::Type{<:Name}, ::Val{:train}) = ninstances(N)[1] > 0
@@ -32,3 +32,11 @@ loadraw(N::Type{<:Name}, type) = loadraw(format(N), datapath(N, type))
 hasmeta(N::Type{<:Name}) = isfile(joinpath(datadir(N), "meta.bson"))
 savemeta(N::Type{<:Name}, meta) = BSON.bson(joinpath(datadir(N), "meta.bson"), meta)
 loadmeta(N::Type{<:Name}) = BSON.load(joinpath(datadir(N), "meta.bson"))
+
+# MLDatasets
+loadraw_mldatasets(modul_name, type::Symbol) = loadraw_mldatasets(modul_name, Val(type))
+function loadraw_mldatasets(::Type{<:Name}, type::Val)
+    throw(ArgumentError("$(type) subset not supported. Possible choices: :train, :test"))
+end
+loadraw_mldatasets(dataset, ::Val{:train}, T = Float32) = dataset.traindata(T)
+loadraw_mldatasets(dataset, ::Val{:test}, T = Float32) = dataset.testdata(T)
