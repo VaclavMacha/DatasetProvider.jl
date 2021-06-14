@@ -31,8 +31,8 @@ include("./formats/images.jl")
 include("./splits/traintest.jl")
 include("./splits/trainvalidtest.jl")
 
-include.(readdir(joinpath(@__DIR__, "datasets", "twoclass"); join = true))
-include.(readdir(joinpath(@__DIR__, "datasets", "multiclass"); join = true))
+include.(readdir(joinpath(@__DIR__, "datasets", "classification"); join = true))
+include.(readdir(joinpath(@__DIR__, "datasets", "regression"); join = true))
 
 # constants
 function subtypes_list(T)
