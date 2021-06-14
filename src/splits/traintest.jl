@@ -11,7 +11,7 @@ function load(
 
     train = load(dataset, :train; dopostprocess = false)
     if !hassubset(N, :test)
-        train, test = data_split(train, samplesdim(F), split.at)
+        train, test = data_split(dataset, train, samplesdim(F), split.at)
     else
         test = load(dataset, :test; dopostprocess = false)
     end

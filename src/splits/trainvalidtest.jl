@@ -14,12 +14,12 @@ function load(
     obsdim = samplesdim(F)
 
     if !hassubset(N, :valid) && !hassubset(N, :test)
-        train, valid, test = data_split(train, obsdim, at)
+        train, valid, test = data_split(dataset, train, obsdim, at)
     elseif !hassubset(N, :test)
-        train, test = data_split(train, obsdim, sum(at))
+        train, test = data_split(dataset, train, obsdim, sum(at))
         valid = load(dataset, :valid; dopostprocess = false)
     elseif !hassubset(N, :valid)
-        train, valid = data_split(train, obsdim, sum(at))
+        train, valid = data_split(dataset, train, obsdim, sum(at))
         test = load(dataset, :test; dopostprocess = false)
     else
         valid = load(dataset, :valid; dopostprocess = false)
