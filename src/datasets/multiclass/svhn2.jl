@@ -1,38 +1,46 @@
-struct SVHN2 <: Name end
+abstract type AbstractSVHN2 <: Name end
+struct SVHN2 <: AbstractSVHN2 end
+struct SVHN2Extra <: AbstractSVHN2 end
 
-# download options
-function source(::Type{SVHN2})
-    return "http://ufldl.stanford.edu/housenumbers"
-end
+# mandatory methods
+format(::Type{<:AbstractSVHN2}) = ColorImages
+task(::Type{<:AbstractSVHN2}) = MultiClass
+source(::Type{<:AbstractSVHN2}) = "http://ufldl.stanford.edu/housenumbers"
+datadepname(::Type{<:AbstractSVHN2}) = "SVHN2"
+make_datadep(::Type{<:AbstractSVHN2}) = nothing
 
-function downloadlink(::Type{SVHN2})
-    return [
-        "http://ufldl.stanford.edu/housenumbers/train_32x32.mat",
-        "http://ufldl.stanford.edu/housenumbers/test_32x32.mat",
-    ]
-end
+loadraw(::Type{SVHN2}, type) = loadraw_mldatasets(MLDatasets.SVHN2, type) 
 
-make_datadep(::Type{SVHN2}) = nothing
-
-function load_raw(::Type{SVHN2}, type)
+function loadraw(::Type{SVHN2Extra}, type, T = Float32)
     if type == :train
-        x, y = MLDatasets.SVHN2.traindata(Float64)
+        xtrain, ytrain = MLDatasets.SVHN2.traindata(T)
+        xextra, yextra = MLDatasets.SVHN2.extradata(T)
+        x = cat(xtrain, xextra; dims = 4)
+        y = cat(ytrain, yextra; dims = 1)
     elseif type == :test
-        x, y = MLDatasets.SVHN2.testdata(Float64)
+        x, y = MLDatasets.SVHN2.testdata(T)
     else
         error("$(type) dataset not provided for $(nameof(N))")
     end
     return x, y
 end
 
+nclasses(::Type{<:AbstractSVHN2}) = 10
+classes(::Type{<:AbstractSVHN2}) = collect(1:10)
+classes_orig(::Type{<:AbstractSVHN2}) = collect(0:9)
+nattributes(::Type{<:AbstractSVHN2}) = (32, 32, 3)
+ninstances(::Type{SVHN2}) = (73257, 0, 26032)
+ninstances(::Type{SVHN2Extra}) = (604388, 0, 26032)
+
 
 # dataset description
-name(::Type{SVHN2}) = "The Street View House Numbers (SVHN) Dataset"
-function author(::Type{SVHN2})
+name(::Type{<:AbstractSVHN2}) = "The Street View House Numbers (SVHN) Dataset"
+
+function author(::Type{<:AbstractSVHN2})
     return ["Yuval Netzer", "Tao Wang", "Adam Coates", "Alessandro Bissacco", "Bo Wu", "Andrew Y. Ng"]
 end
-licence(::Type{SVHN2}) = ""
-function citation(::Type{SVHN2})
+
+function citation(::Type{<:AbstractSVHN2})
     return """
     @article{netzer2011reading,
         title = {Reading digits in natural images with unsupervised feature learning},
@@ -41,12 +49,3 @@ function citation(::Type{SVHN2})
     }
     """
 end
-
-# data description
-problemtype(::Type{SVHN2}) = MultiClass
-formattype(::Type{SVHN2}) = ColorImages
-nclasses(::Type{SVHN2}) = 10
-classes(::Type{SVHN2}) = collect(1:10)
-classes_orig(::Type{SVHN2}) = collect(0:9)
-nattributes(::Type{SVHN2}) = (32, 32, 3)
-ninstances(::Type{SVHN2}) = (73257, 0, 26032)
