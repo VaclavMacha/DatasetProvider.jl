@@ -14,12 +14,7 @@ using StatsBase
 
 import MLDatasets
 
-export load, loadraw
-export Dataset
-export Name
-export Task, TwoClass, MultiClass
-export Format, TabularData, GreyImages, ColorImages
-export Split, TrainTest, TrainValidTest
+export load, loadraw, Dataset, Split, TrainTest, TrainValidTest
 
 # Includes
 include("types.jl")
@@ -27,8 +22,8 @@ include("dataset.jl")
 include("utilities.jl")
 include("postprocessing.jl")
 
-include("./tasks/twoclass.jl")
-include("./tasks/multiclass.jl")
+include("./tasks/classification.jl")
+include("./tasks/regression.jl")
 
 include("./formats/tabulardata.jl")
 include("./formats/images.jl")

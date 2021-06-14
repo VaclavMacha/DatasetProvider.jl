@@ -1,1 +1,0 @@
-struct TwoClass <: Task end
