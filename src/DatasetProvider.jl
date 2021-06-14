@@ -27,9 +27,15 @@ include("dataset.jl")
 include("utilities.jl")
 include("postprocessing.jl")
 
-include.(readdir(joinpath(@__DIR__, "formats"); join = true))
-include.(readdir(joinpath(@__DIR__, "tasks"); join = true))
-# include.(readdir(joinpath(@__DIR__, "splits"); join = true))
+include("./tasks/twoclass.jl")
+include("./tasks/multiclass.jl")
+
+include("./formats/tabulardata.jl")
+include("./formats/grayimages.jl")
+include("./formats/colorimages.jl")
+
+include("./splits/traintest.jl")
+include("./splits/trainvalidtest.jl")
 
 include.(readdir(joinpath(@__DIR__, "datasets", "twoclass"); join = true))
 # include.(readdir(joinpath(@__DIR__, "datasets", "multiclass"); join = true))
@@ -48,16 +54,16 @@ function subtypes_list(T)
 end
 
 const DATASETS = Ref{Vector{DataType}}(DataType[])
-const PROBLEMS = Ref{Vector{DataType}}(DataType[])
+const TASKS = Ref{Vector{DataType}}(DataType[])
 const FORMATS = Ref{Vector{DataType}}(DataType[])
 
 name_subtypes() = DATASETS[]
-problem_subtypes() = PROBLEMS[]
+problem_subtypes() = TASKS[]
 format_subtypes() = FORMATS[]
 
 function __init__()
     DATASETS[] = subtypes_list(Name)
-    PROBLEMS[] = subtypes_list(Task)
+    TASKS[] = subtypes_list(Task)
     FORMATS[] = subtypes_list(Format)
 
     for N in name_subtypes()

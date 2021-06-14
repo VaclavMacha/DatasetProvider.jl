@@ -9,10 +9,11 @@ function args(
     ::Type{TabularData};
     asmatrix = false,
     origheader = false,
+    binarize = true,
     kwargs...
 )
 
-    return (; asmatrix, origheader)
+    return (; asmatrix, origheader, binarize)
 end
 
 # meta data 
@@ -40,17 +41,21 @@ function compute_meta(
     istarget,
     iscategorical,
     toremove
-)
+)   
+
+    if !(isa(istarget, Int) || length(istarget) == 1 || isempty(istarget))  
+        throw(ArgumentError("only one target vector is supported"))
+    end
 
     n = size(table, 2)
-    inds = setdiff(1:n, vcat(istarget, iscategorical, toremove))
+    inds = setdiff(1:n, reduce(vcat, [istarget, iscategorical, toremove]))
     types = [colname(eltype(table[!, i])) for i in inds]
     types_prm = sortperm(types)
 
     # column permutation
-    prm = vcat(istarget..., iscategorical..., inds[types_prm]...)
+    prm = reduce(vcat, [istarget, iscategorical, inds[types_prm]])
     header = vcat(
-        fill("target", length(istarget))...,
+        fill("targets", length(istarget))...,
         fill("cat", length(iscategorical))...,
         types[types_prm]...
     )
@@ -126,17 +131,12 @@ function preprocess_targets(
     N::Type{<:Name},
     path,
     type::Symbol;
+    istarget::Int = 1,
     kwargs...
 )
 
     table = loadraw(N, type)
-    targets = csvread(path; kwargs...)
-    k = size(targets, 2)
-    pad = k == 1 ? 0 : ndigits(k)
-    for (i, col) in enumerate(eachcol(targets))
-        key = add_pad("target", i, pad)
-        insertcols!(table, i, key => col)
-    end
+    insertcols!(table, 1, "targets" => csvread(path; kwargs...)[:, istarget])
 
     # save
     saveraw(N, path, type, table)
@@ -146,16 +146,21 @@ end
 
 # postprocessing
 function postprocess(
-    ::TabularData,
+    N::Type{<:Name},
+    ::Type{<:TabularData},
     table::AbstractDataFrame;
     asmatrix,
     origheader,
+    binarize,
     kwargs...
     )
-
+    
+    table = copy(table)
+    if binarize
+        table.targets = data_binarize(table.targets, positivelabel(N))
+    end
     if asmatrix
-        target = filter(contains("target"), names(table))
-        y = select(table, target) |> Array
+        y = select(table, "targets") |> Vector
         x = select(table, Not(target)) |> Array
         return x, y
     else

@@ -6,19 +6,19 @@ end
 
 function load(
     split::TrainValidTest,
-    dataset::Dataset{N, P, F},
-) where {N<:Name, P<:Problem, F<:Format}
+    dataset::Dataset{N, F, T},
+) where {N<:Name, F<:Format, T<:Task}
 
     at = split.at
     train = load(dataset, :train; dopostprocess = false)
     obsdim = samplesdim(F)
 
-    if !hasvalid(N) && !hastest(N)
+    if !hassubset(N, :valid) && !hassubset(N, :test)
         train, valid, test = data_split(train, obsdim, at)
-    elseif !hastest(N)
+    elseif !hassubset(N, :test)
         train, test = data_split(train, obsdim, sum(at))
         valid = load(dataset, :valid; dopostprocess = false)
-    elseif !hasvalid(N)
+    elseif !hassubset(N, :valid)
         train, valid = data_split(train, obsdim, sum(at))
         test = load(dataset, :test; dopostprocess = false)
     else
@@ -32,3 +32,5 @@ function load(
 
     return train, valid, test
 end
+
+load(dataset::Dataset) = load(TrainValidTest(), dataset)

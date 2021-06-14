@@ -8,7 +8,7 @@ function partition_size(targets, at::AbstractVector)
 end
 
 function targets_map(targets)
-    classes = sort!(unique(targets))
+    classes = sort(unique(targets))
     mapping = Dict(tuple.(classes, 1:length(classes)))
     return y -> mapping[y]
 end
@@ -17,7 +17,7 @@ targets_map(::BitArray) = y -> y ? 2 : 1
 
 function partition_class(targets, at)
     ymap = targets_map(targets)
-    ns = partition_size(targets, at)
+    ns = partition_size(ymap.(targets), at)
 
     parts = zeros.(Int, sum(ns; dims = 1))
     class_part = ones(Int, size(ns, 1))
@@ -51,15 +51,15 @@ function data_split(data::Tuple, obsdim, at)
 end
 
 function data_split(data::AbstractDataFrame, obsdim, at)
-    y = data.targets
+    y = data.targets |> Vector
     return map(partition_class(y, at)) do inds
-        return view(data, inds, :)
+        return data[inds, :]
     end
 end
 
 # data shuffle
-function data_shuffle(data, onsdim, flag::Bool; seed = 1234)
-    return flag ? data_shuffle(data, onsdim; seed) : data
+function data_shuffle(data, obsdim, flag::Bool; seed = 1234)
+    return flag ? data_shuffle(data, obsdim; seed) : data
 end
 
 function data_shuffle(data::Tuple, obsdim; seed = 1234)

@@ -54,9 +54,12 @@ end
 # Dataset Task
 abstract type Task end
 args(::Type{<:Task}; kwargs...) = (;)
-postprocess(::Type{<:Task}, data; kwargs...) = data
+postprocess(::Type{<:Name}, ::Type{<:Task}, data; kwargs...) = data
 
 # Dataset Format
 abstract type Format end
 args(::Type{<:Format}; kwargs...) = (;)
-postprocess(::Type{<:Format}, data; kwargs...) = data
+postprocess(::Type{<:Name}, ::Type{<:Format}, data; kwargs...) = data
+
+
+abstract type Split end
