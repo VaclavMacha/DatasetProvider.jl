@@ -14,7 +14,7 @@ using StatsBase
 
 import MLDatasets
 
-export load
+export load, loadraw
 export Dataset
 export Name
 export Task, TwoClass, MultiClass
