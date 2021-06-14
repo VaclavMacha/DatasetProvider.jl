@@ -14,7 +14,7 @@ using StatsBase
 
 import MLDatasets
 
-export load, remove, removeall, listdatasets
+export load
 export Dataset
 export Name
 export Task, TwoClass, MultiClass
@@ -31,14 +31,13 @@ include("./tasks/twoclass.jl")
 include("./tasks/multiclass.jl")
 
 include("./formats/tabulardata.jl")
-include("./formats/grayimages.jl")
-include("./formats/colorimages.jl")
+include("./formats/images.jl")
 
 include("./splits/traintest.jl")
 include("./splits/trainvalidtest.jl")
 
 include.(readdir(joinpath(@__DIR__, "datasets", "twoclass"); join = true))
-# include.(readdir(joinpath(@__DIR__, "datasets", "multiclass"); join = true))
+include.(readdir(joinpath(@__DIR__, "datasets", "multiclass"); join = true))
 
 # constants
 function subtypes_list(T)
