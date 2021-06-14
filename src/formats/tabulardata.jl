@@ -160,8 +160,8 @@ function postprocess(
         table.targets = data_binarize(table.targets, positivelabel(N))
     end
     if asmatrix
-        y = select(table, "targets") |> Vector
-        x = select(table, Not(target)) |> Array
+        y = table.targets |> Vector
+        x = select(table, Not(:targets)) |> Array
         return x, y
     else
         meta = loadmeta(N)
