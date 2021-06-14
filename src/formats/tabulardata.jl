@@ -156,7 +156,7 @@ function postprocess(
     )
     
     table = copy(table)
-    if binarize
+    if binarize && hasmethod(positivelabel, (N,))
         table.targets = data_binarize(table.targets, positivelabel(N))
     end
     if asmatrix
