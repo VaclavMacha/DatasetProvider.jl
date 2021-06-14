@@ -1,4 +1,1 @@
-struct MultiClass <: Task
-    binarize
-    poslabels
-end
+struct MultiClass <: Task end
