@@ -14,6 +14,7 @@ using StatsBase
 
 import ExcelFiles
 import MLDatasets
+import ZipFile
 
 export load, loadraw, Dataset, Split, TrainTest, TrainValidTest
 
