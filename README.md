@@ -10,7 +10,7 @@ To install this package use Pkg REPL and following command
 add https://github.com/VaclavMacha/DatasetProvider
 ```
 
-## Basic usage
+## Loading raw data
 
 ```julia
 julia> using DatasetProvider
@@ -34,6 +34,7 @@ julia> first(data, 6)
 ```
 
 ### Train-valid-test split
+
 ```julia
 julia> d = Dataset(Ionosphere; origheader = true, seed = 123, binarize = true)
 Ionosphere(shuffle = false, seed = 123, asmatrix = false, origheader = true, binarize = true)
@@ -89,4 +90,49 @@ julia> train[2][1:6]
  1
  0
  1
+```
+
+### Listing datasets
+
+```julia
+julia> listdatasets()
+MultiClass: 
+  ColorImages: 
+    ✔ CIFAR10 
+    ✔ CIFAR100 
+    ✔ CIFAR20 
+    ✔ SVHN2 
+    ✔ SVHN2Extra 
+  GrayImages: 
+    ✔ FashionMNIST 
+    ✔ MNIST 
+  TabularData: 
+    ✔ RedWineQuality 
+    ✔ WhiteWineQuality 
+TwoClass: 
+  TabularData: 
+    ✔ BreastCancer 
+    ✔ Gisette 
+    ✔ HEPMASS 
+    ✔ Ionosphere 
+    ✔ Spambase 
+Regression: 
+  TabularData: 
+    ✔ BikeSharingDay 
+    ✔ BikeSharingHour 
+    ✔ FacebookV1 
+    ✔ FacebookV2 
+    ✔ FacebookV3 
+    ✔ FacebookV4 
+    ✔ FacebookV5 
+    ✔ CommunitiesCrime 
+    ✔ Concrete 
+    ✔ ProteinStructure 
+```
+
+### Removing datasets
+
+```julia
+julia> remove(DatasetProvider.Ionosphere)
+ ✖ Ionosphere dataset removed
 ```

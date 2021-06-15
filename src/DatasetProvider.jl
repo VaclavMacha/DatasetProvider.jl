@@ -17,6 +17,7 @@ import MLDatasets
 import ZipFile
 
 export load, loadraw, Dataset, Split, TrainTest, TrainValidTest
+export listdatasets, remove, removeall
 
 # Includes
 include("types.jl")
@@ -56,7 +57,7 @@ const TASKS = Ref{Vector{DataType}}(DataType[])
 const FORMATS = Ref{Vector{DataType}}(DataType[])
 
 name_subtypes() = DATASETS[]
-problem_subtypes() = TASKS[]
+task_subtypes() = TASKS[]
 format_subtypes() = FORMATS[]
 
 function __init__()

@@ -50,3 +50,57 @@ function unzip(path; clearpath = true, rename = identity, skip = (f) -> false)
     clearpath && rm(path)
     return
 end
+
+"""
+    remove(N::Type{<:Name})
+Removes given dataset `N`, if installed.
+"""
+function remove(N::Type{<:Name})
+    path = DataDeps.try_determine_load_path(datadepname(N), @__DIR__)
+    if !isnothing(path)
+        rm(path; recursive = true)
+        printstyled(" ✖ $(nameof(N)) dataset removed \n"; color = :red)
+    else
+        printstyled(" ✖ $(nameof(N)) dataset not installed \n"; color = :red)
+    end
+    return
+end
+
+"""
+    removeall()
+Removes all downloaded datasets.
+"""
+function removeall()
+    if DataDeps.input_bool("Do you want to remove all downloaded datasets?")
+        remove.(name_subtypes())
+    end
+    return
+end
+
+"""
+    listdatasets()
+Prints the names of all available datasets and highlights datasets that have already been downloaded. Datasets are sorted into groups based on their problem type and format type.
+"""
+function listdatasets()
+    Ns = name_subtypes()
+    Ts = task_subtypes()
+    Fs = format_subtypes()
+
+    for T in Ts
+        printstyled("$(nameof(T)): \n"; color = :blue, bold = true)
+        for F in Fs
+            datasets = [N for N in Ns if task(N) <: T && format(N) <: F]
+            isempty(datasets) && continue
+            printstyled("  $(nameof(F)): \n"; color = :yellow, bold = true)
+            for N in datasets
+                path = DataDeps.try_determine_load_path(datadepname(N), @__DIR__)
+                if isnothing(path)
+                    printstyled("    ✖ $(nameof(N)) \n"; color = :red)
+                else
+                    printstyled("    ✔ $(nameof(N)) \n"; color = :green, bold = true)
+                end
+            end
+        end
+    end
+    return
+end
