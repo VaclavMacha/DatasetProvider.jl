@@ -1,23 +1,3 @@
-function load(
-    dataset::Dataset{N, P, F},
-    type::Symbol;
-    dopostprocess::Bool = true,
-) where {N<:Name, P<:Problem, F<:Format}
-
-    seed = dataset.seed
-    shuffle = dataset.shuffle
-    obsdim = samplesdim(F)
-    data = data_shuffle(load_raw(N, type), obsdim, shuffle; seed)
-
-    if dopostprocess
-        return postprocess(dataset, data)
-    else
-        return data
-    end
-end
-
-load(dataset::Dataset) = load(TrainValidTest(), dataset)
-
 struct TrainTest <: Split
     at::Float64
 
@@ -26,12 +6,12 @@ end
 
 function load(
     split::TrainTest,
-    dataset::Dataset{N, P, F}
-) where {N<:Name, P<:Problem, F<:Format}
+    dataset::Dataset{N, F, T}
+) where {N<:Name, F<:Format, T<:Task}
 
     train = load(dataset, :train; dopostprocess = false)
-    if !hastest(N)
-        train, test = data_split(train, samplesdim(F), split.at)
+    if !hassubset(N, :test)
+        train, test = data_split(dataset, train, samplesdim(F), split.at)
     else
         test = load(dataset, :test; dopostprocess = false)
     end
