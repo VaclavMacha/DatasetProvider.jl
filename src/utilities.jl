@@ -42,10 +42,11 @@ loadraw_mldatasets(dataset, ::Val{:train}, T = Float32) = dataset.traindata(T)
 loadraw_mldatasets(dataset, ::Val{:test}, T = Float32) = dataset.testdata(T)
 
 # unzip
-function unzip(path)
+function unzip(path; clearpath = true)
     r = ZipFile.Reader(path)
     for f in r.files
         write(joinpath(dirname(path), f.name), read(f, String));
     end
+    clearpath && rm(path)
     return
 end
