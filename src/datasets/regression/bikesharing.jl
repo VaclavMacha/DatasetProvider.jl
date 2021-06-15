@@ -49,7 +49,7 @@ function checksum(::Type{<:AbstractBikeSharing})
     return "b70182d0d0508e9abbb79306ce5c0cec34869000f8220175ac83d11dbe845401"
 end
 
-name(::Type{<:AbstractBikeSharing}) = "AbstractBikeSharing Compressive Strength Data Set"
+name(::Type{<:AbstractBikeSharing}) = "BikeSharing Compressive Strength Data Set"
 author(::Type{<:AbstractBikeSharing}) = ["Hadi Fanaee-T", "Joao Gama"]
 
 function citation(::Type{<:AbstractBikeSharing})
