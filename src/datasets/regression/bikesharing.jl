@@ -19,11 +19,9 @@ function preprocess(N::Type{BikeSharingHour})
     toremove = 1
 
     return function (path)
-        unzip(path)
+        unzip(path; skip = f -> f.name in ["day.csv", "Readme.txt"])
         file = joinpath(datadir(N), "hour.csv")
         preprocess_csv(N, file, :train; istarget, iscategorical, toremove, header = true)
-        rm(joinpath(datadir(N), "day.csv"))
-        rm(joinpath(datadir(N), "Readme.txt"))
         return 
     end
 end
@@ -34,18 +32,17 @@ function preprocess(N::Type{BikeSharingDay})
     toremove = 1
 
     return function (path)
-        unzip(path)
+        unzip(path; skip = f -> f.name in ["hour.csv", "Readme.txt"])
         file = joinpath(datadir(N), "day.csv")
         preprocess_csv(N, file, :train; istarget, iscategorical, toremove, header = true)
-        rm(joinpath(datadir(N), "hour.csv"))
-        rm(joinpath(datadir(N), "Readme.txt"))
         return 
     end
 end
 
 nattributes(::Type{BikeSharingHour}) = (16, )
 nattributes(::Type{BikeSharingDay}) = (15, )
-ninstances(::Type{<:AbstractBikeSharing}) = (17389, 0, 0)
+ninstances(::Type{BikeSharingHour}) = (17389, 0, 0)
+ninstances(::Type{BikeSharingDay}) = (731, 0, 0)
 
 # optional methods
 function checksum(::Type{<:AbstractBikeSharing})
