@@ -106,11 +106,17 @@ function preprocess_csv(
     iscategorical = Int[],
     toremove = Int[],
     header = false,
+    excel::Bool = false,
+    sheetname::String = "Sheet1",
     kwargs...
 )
 
     # read table and metadata
-    table = csvread(path; header, kwargs...)
+    table = if excel
+        DataFrame(ExcelFiles.load(path, sheetname))
+    else
+        csvread(path; header, kwargs...)
+    end
     if hasmeta(N)
         meta = loadmeta(N)
     else

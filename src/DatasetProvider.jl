@@ -12,6 +12,7 @@ using Random
 using Statistics
 using StatsBase
 
+import ExcelFiles
 import MLDatasets
 
 export load, loadraw, Dataset, Split, TrainTest, TrainValidTest
