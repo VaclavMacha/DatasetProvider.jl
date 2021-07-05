@@ -3,6 +3,16 @@ abstract type Classification <: Task end
 struct TwoClass <: Classification end
 struct MultiClass <: Classification end
 
+function args(
+    ::Type{<:Classification};
+    binarize = true,
+    poslabels = [],
+    kwargs...
+)
+
+    return (; binarize, poslabels)
+end
+
 # partition by classes
 partition_size(targets, at) = partition_size(targets, [at...,])
 
@@ -45,4 +55,19 @@ function partition(::Dataset{N, F, T}, targets, at) where {N, F, T<:Classificati
         pos_part[i] += 1
     end
     return Tuple(parts)
+end
+
+function postprocess(
+    N::Type{<:Name},
+    ::Type{<:Classification},
+    data;
+    binarize,
+    poslabels,
+    kwargs...
+    )
+    
+    if binarize && !isempty(poslabels)
+        data = data_binarize(data, poslabels)
+    end
+    return data
 end

@@ -9,11 +9,10 @@ function args(
     ::Type{TabularData};
     asmatrix = false,
     origheader = false,
-    binarize = true,
     kwargs...
 )
 
-    return (; asmatrix, origheader, binarize)
+    return (; asmatrix, origheader)
 end
 
 # meta data 
@@ -157,14 +156,10 @@ function postprocess(
     table::AbstractDataFrame;
     asmatrix,
     origheader,
-    binarize,
     kwargs...
     )
     
     table = copy(table)
-    if binarize && hasmethod(positivelabel, (N,))
-        table.targets = data_binarize(table.targets, positivelabel(N))
-    end
     if asmatrix
         y = table.targets |> Vector
         x = select(table, Not(:targets)) |> Array

@@ -43,10 +43,23 @@ end
 function data_binarize(data::AbstractDataFrame, poslabels)
     y = data.targets
     select!(data, Not(:targets))
-    data.targets = data_binarize(y, poslabels)
+    insertcols!(data, 1, :targets => data_binarize(y, poslabels))
     return data
 end
 
 data_binarize(y::AbstractVector, poslabels::AbstractString) = y .== poslabels
 data_binarize(y::AbstractVector, poslabels::Symbol) = y .== poslabels
 data_binarize(y::AbstractVector, poslabels) = in.(y, Ref(poslabels))
+
+
+function data_binarize_regression(data::Tuple, threshold::Real)
+    x, y = data
+    return x, y .>= threshold
+end
+
+function data_binarize_regression(data::AbstractDataFrame, threshold::Real)
+    y = data.targets
+    select!(data, Not(:targets))
+    insertcols!(data, 1, :targets => y .>= threshold)
+    return data
+end
