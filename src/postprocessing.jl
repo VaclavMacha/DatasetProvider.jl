@@ -29,7 +29,7 @@ function data_shuffle(data::AbstractDataFrame, obsdim; seed = 1234)
     Random.seed!(seed)
     y = data.targets
     prm = Random.randperm(length(y))
-    return view(data, prm, :)
+    return data[prm, :]
 end
 
 # binarization
