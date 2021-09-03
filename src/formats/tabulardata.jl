@@ -97,6 +97,10 @@ function csvread(
     )
 end
 
+function load_excel(file, sheet)
+    error("Loading excel files is not supported by default.")
+end
+
 function preprocess_csv(
     N::Type{<:Name},
     path,
@@ -112,7 +116,7 @@ function preprocess_csv(
 
     # read table and metadata
     table = if excel
-        DataFrame(ExcelFiles.load(path, sheetname))
+        DataFrame(load_excel(path, sheetname))
     else
         csvread(path; header, kwargs...)
     end

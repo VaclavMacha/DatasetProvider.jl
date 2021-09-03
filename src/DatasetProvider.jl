@@ -6,18 +6,22 @@ using CodecZlib
 using DataDeps
 using DataFrames
 using Dates
+using DelimitedFiles
+using Images
 using InteractiveUtils
+using MAT
 using Mmap
 using Random
 using Statistics
 using StatsBase
 
-import ExcelFiles
 import MLDatasets
 import ZipFile
 
 export load, loadraw, Dataset, Split, TrainTest, TrainValidTest
 export listdatasets, remove, removeall
+
+const DATADIR = normpath(joinpath(@__DIR__, "../data"))
 
 # Includes
 include("types.jl")
