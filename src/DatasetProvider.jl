@@ -7,6 +7,8 @@ using DataDeps
 using DataFrames
 using Dates
 using DelimitedFiles
+using FileIO
+using ImageIO
 using Images
 using InteractiveUtils
 using MAT

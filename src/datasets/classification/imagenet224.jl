@@ -97,20 +97,20 @@ function Base.size(A::ColorImageArray{T, N, W, H}) where {T, N, W, H}
     return (W, H, 3, length(A.files))
 end
 
-Base.similar(::ColorImageArray, ::Type{T}, dims::Dims) where {T} = Array{T}(undef, dims)
+function load_image(file::String)
+    img = FileIO.load(file)
+    return PermutedDimsArray(channelview(img), (2,3,1))
+end
 
 function Base.getindex(A::ColorImageArray{T,N}, i1, i2 ,i3, i4::Int) where {T, N}
-    img = Images.load(A.files[i4])
-    X = T.(PermutedDimsArray(channelview(img), (2,3,1)))
-    return getindex(X, i1, i2, i3)
+    return getindex(T.(load_image(A.files[i4])), i1, i2, i3)
 end
 
 function Base.getindex(A::ColorImageArray{T,N,W,H}, i1, i2 ,i3, i4) where {T, N, W, H}
-    X = similar(A, size(A)[1:3]..., length(i4))
+    X = Array{T}(undef, size(A)[1:3]..., length(i4))
 
     for (j, i) in enumerate(i4)
-        img = Images.load(A.files[i])
-        X[:, :, :, j] .= PermutedDimsArray(channelview(img), (2,3,1))
+        X[:, :, :, j] .= load_image(A.files[i])
     end
     return getindex(X, i1, i2, i3, 1:length(i4))
 end
