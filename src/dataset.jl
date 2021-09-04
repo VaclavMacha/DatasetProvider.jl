@@ -16,6 +16,8 @@ struct Dataset{N<:Name, F<:Format, T<:Task}
     end
 end
 
+(N::Type{<:Name})(; kwargs...) = Dataset(N; kwargs...)
+
 function Base.show(io::IO, data::Dataset{N, F, T}) where {N, F, T}
     args = (shuffle = data.shuffle, seed = data.seed)
     print(io, nameof(N), merge(args, data.format_args, data.task_args))
