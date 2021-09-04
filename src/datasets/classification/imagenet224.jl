@@ -98,7 +98,7 @@ function Base.size(A::ColorImageArray{T, N, W, H}) where {T, N, W, H}
 end
 
 function load_image(file::String)
-    img = FileIO.load(file)
+    img = PNGFiles.load(file)
     return PermutedDimsArray(channelview(img), (2,3,1))
 end
 

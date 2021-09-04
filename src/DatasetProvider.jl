@@ -13,6 +13,7 @@ using Images
 using InteractiveUtils
 using MAT
 using Mmap
+using PNGFiles
 using Random
 using Statistics
 using StatsBase
