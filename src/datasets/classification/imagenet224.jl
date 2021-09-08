@@ -59,13 +59,12 @@ struct HDF5Array{T, N} <: AbstractArray{T, N}
     data
     inds
 
-    function HDF5Array(data::HDF5.Dataset, inds = 1:size(data, ndims(data)))
+    function HDF5Array(data, inds = 1:size(data, ndims(data)))
         return new{eltype(data), ndims(data)}(data, inds)
     end
 end
 
 Base.size(A::HDF5Array) = (size(A.data)[1:end-1]..., length(A.inds))
-Base.close(A::HDF5Array) = close(A.data)
 
 Base.summary(A::HDF5Array{T, 1}) where {T} = "$(length(A))-element HDF5Vector{$T}"
 Base.summary(A::HDF5Array{T, 2}) where {T} = "$(join(size(A), "x")) HDF5Matrix{$T}"
@@ -93,7 +92,11 @@ end
 
 function loadraw(N::Type{ImageNet224}, type)
     hassubset(N, type)
-    fid = open_imagenet()
     split = type == :test ? "val" : "train"
-    return HDF5Array(fid["$(split)_data"]), fid["$(split)_targets"][:]
+
+    fid = open_imagenet()
+    data = HDF5.readmmap(fid["$(split)_data"])
+    targets = fid["$(split)_targets"][:]
+    close(fid)
+    return HDF5Array(data), targets
 end
