@@ -1,6 +1,24 @@
 struct ImageNet224 <: Name end
 
-const IMAGENET224_DIR = joinpath(DATADIR, "ImageNet224/") 
+const IMAGENET_PATH = Ref{String}(joinpath(DATADIR, "ImageNet224.h5"))
+const IMAGENET_FILE = Ref{HDF5.File}(HDF5.File(-1, "nnn"))
+
+function set_imagenet_path!(path)
+    IMAGENET_PATH[] = path
+end
+
+function open_imagenet()
+    if !isfile(IMAGENET_PATH[])
+        error("File $(IMAGENET_PATH[]) does not exists. Use DatasetProvider.set_imagenet_path! function to set the proper path.")
+    end
+    fid = IMAGENET_FILE[]
+    if !isopen(fid)
+        IMAGENET_FILE[] = fid = h5open(IMAGENET_PATH[], "r")
+    end
+    return fid
+end
+
+close_imagenet() = close(IMAGENET_FILE[])
 
 # download options
 task(::Type{ImageNet224}) = MultiClass
@@ -37,98 +55,45 @@ function citation(::Type{ImageNet224})
 end
 
 # loading
-function create_label_map(file::String)
-    m = MAT.matread(file)["synsets"]
-    key = filter(x -> contains(x, "_ID"), collect(keys(m)))[1]
-    return Dict(String.(m["WNID"]) .=> Int.(m[key]))
-end
+struct HDF5Array{T, N} <: AbstractArray{T, N}
+    data
+    inds
 
-function data_table(::Val{:train}, image_dir)
-    file = joinpath(image_dir, "data_train.csv")
-
-    if !isfile(file)
-        label_map = create_label_map(joinpath(image_dir, "meta.mat"))
-        dfs = map(readdir(joinpath(image_dir, "train"); join = true)) do dir
-            return DataFrame(
-                files = readdir(dir; join = true),
-                labels = label_map[basename(dir)],
-                category = dir,
-            )
-        end
-        df = reduce(vcat, dfs)
-        CSV.write(file, df)
+    function HDF5Array(data::HDF5.Dataset, inds = 1:size(data, ndims(data)))
+        return new{eltype(data), ndims(data)}(data, inds)
     end
-    return CSV.read(file, DataFrame)
 end
 
-function data_table(::Val{:test}, image_dir)
-    file = joinpath(image_dir, "data_test.csv")
+Base.size(A::HDF5Array) = (size(A.data)[1:end-1]..., length(A.inds))
+Base.close(A::HDF5Array) = close(A.data)
 
-    if !isfile(file)
-        label_map = create_label_map(joinpath(image_dir, "meta.mat"))
-        labels = readdlm(joinpath(image_dir, "test_labels.txt")) |> vec
-        rev_map = Dict(values(label_map) .=> keys(label_map))
+Base.summary(A::HDF5Array{T, 1}) where {T} = "$(length(A))-element HDF5Vector{$T}"
+Base.summary(A::HDF5Array{T, 2}) where {T} = "$(join(size(A), "x")) HDF5Matrix{$T}"
+Base.summary(A::HDF5Array{T, N}) where {T, N} = "$(join(size(A), "x")) HDF5Array{$T}"
 
-        df = DataFrame(
-            files = readdir(joinpath(image_dir, "test"); join = true),
-            labels = labels,
-            category = [rev_map[label] for label in labels],
-        )
-        CSV.write(file, df)
+Base.show(io::IO, A::HDF5Array) = print(io, summary(A))
+Base.show(io::IO, ::MIME"text/plain", A::HDF5Array) = show(io, A)
+
+function Base.getindex(A::HDF5Array, I...)
+    indices = Base.to_indices(A, I)
+    return getindex(A.data, indices[1:end-1]..., A.inds[indices[end]])
+end
+
+function Base.setindex!(A::HDF5Array, v, I...)
+    indices = Base.to_indices(A, I)
+    return setindex!(A.data, v, indices[1:end-1]..., A.inds[indices[end]])
+end
+
+function Base.selectdim(A::HDF5Array{T,N}, d::Int, inds) where {T, N}
+    if d != N
+        throw(ArgumentError("only last dimension ($N) can be selected"))
     end
-    return CSV.read(file, DataFrame)
-end
-
-struct ColorImageArray{T, N, W, H} <: AbstractArray{T, N}
-    files::Vector{String}
-
-    ColorImageArray(files, size::NTuple{2, Int}; T = Float32) = new{T, 4, size...}(files)
-end
-
-function Base.show(io::IO, ::MIME"text/plain", A::ColorImageArray{T, N}) where {T, N}
-    return print(io, join(size(A), "x"), " ColorImageArray{$T, $N}") 
-end
-
-function Base.show_nd(io::IO, A::ColorImageArray{T, N}, ::Function, ::Bool) where {T, N}
-    return print(io, join(size(A), "x"), " ColorImageArray{$T, $N}")
-end
-
-function Base.size(A::ColorImageArray{T, N, W, H}) where {T, N, W, H}
-    return (W, H, 3, length(A.files))
-end
-
-function load_image(file::String)
-    img = PNGFiles.load(file)
-    return PermutedDimsArray(channelview(img), (2,3,1))
-end
-
-function Base.getindex(A::ColorImageArray{T,N}, i1, i2 ,i3, i4::Int) where {T, N}
-    return getindex(T.(load_image(A.files[i4])), i1, i2, i3)
-end
-
-function Base.getindex(A::ColorImageArray{T,N,W,H}, i1, i2 ,i3, i4) where {T, N, W, H}
-    X = Array{T}(undef, size(A)[1:3]..., length(i4))
-
-    for (j, i) in enumerate(i4)
-        X[:, :, :, j] .= load_image(A.files[i])
-    end
-    return getindex(X, i1, i2, i3, 1:length(i4))
-end
-
-function Base.setindex!(::ColorImageArray{T,N}, v, I::Vararg{Int,N}) where {T,N}
-    @warn "setindex! not supported fo ColorImageArray"
-    return 
-end
-
-function Base.selectdim(A::ColorImageArray{T,N,W,H}, d::Int, i) where {T, N, W, H}
-    if d != 4
-        throw(ArgumentError("only 4th dimension can be selected"))
-    end
-    return ColorImageArray(A.files[i], (W, H); T)
+    return HDF5Array(A.data, A.inds[inds])
 end
 
 function loadraw(N::Type{ImageNet224}, type)
     hassubset(N, type)
-    df = data_table(Val(type), IMAGENET224_DIR)
-    return ColorImageArray(df.files, (224, 224)), df.labels
+    fid = open_imagenet()
+    split = type == :test ? "val" : "train"
+    return HDF5Array(fid["$(split)_data"]), fid["$(split)_targets"][:]
 end

@@ -6,12 +6,9 @@ using CodecZlib
 using DataDeps
 using DataFrames
 using Dates
-using DelimitedFiles
-using Images
+using HDF5
 using InteractiveUtils
-using MAT
 using Mmap
-using PNGFiles
 using Random
 using Statistics
 using StatsBase
