@@ -56,42 +56,6 @@ function citation(::Type{<:AbstractImageNet224})
     """
 end
 
-# loading
-struct HDF5Array{T, N} <: AbstractArray{T, N}
-    data
-    inds
-
-    function HDF5Array(data, inds = 1:size(data, ndims(data)))
-        return new{eltype(data), ndims(data)}(data, inds)
-    end
-end
-
-Base.size(A::HDF5Array) = (size(A.data)[1:end-1]..., length(A.inds))
-
-Base.summary(A::HDF5Array{T, 1}) where {T} = "$(length(A))-element HDF5Vector{$T}"
-Base.summary(A::HDF5Array{T, 2}) where {T} = "$(join(size(A), "x")) HDF5Matrix{$T}"
-Base.summary(A::HDF5Array{T, N}) where {T, N} = "$(join(size(A), "x")) HDF5Array{$T}"
-
-Base.show(io::IO, A::HDF5Array) = print(io, summary(A))
-Base.show(io::IO, ::MIME"text/plain", A::HDF5Array) = show(io, A)
-
-function Base.getindex(A::HDF5Array, I...)
-    indices = Base.to_indices(A, I)
-    return getindex(A.data, indices[1:end-1]..., A.inds[indices[end]])
-end
-
-function Base.setindex!(A::HDF5Array, v, I...)
-    indices = Base.to_indices(A, I)
-    return setindex!(A.data, v, indices[1:end-1]..., A.inds[indices[end]])
-end
-
-function Base.selectdim(A::HDF5Array{T,N}, d::Int, inds) where {T, N}
-    if d != N
-        throw(ArgumentError("only last dimension ($N) can be selected"))
-    end
-    return HDF5Array(A.data, A.inds[inds])
-end
-
 function loadraw(N::Type{<:AbstractImageNet224}, type)
     hassubset(N, type)
     split = type == :test ? "val" : "train"
