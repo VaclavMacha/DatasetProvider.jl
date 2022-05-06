@@ -22,24 +22,25 @@ end
 close_ember() = close(EMBER_FILE[])
 
 # download options
-task(::Type{<:AbstractEmber}) = MultiClass
-format(::Type{<:AbstractEmber}) = MatrixFormat
-source(::Type{<:AbstractEmber}) = "https://github.com/elastic/ember"
-version(::Type{<:AbstractEmber}) = "2018"
-make_datadep(::Type{<:AbstractEmber}) = nothing
+task(::Type{Ember}) = TwoClass
+format(::Type{Ember}) = MatrixFormat
+source(::Type{Ember}) = "https://github.com/elastic/ember"
+version(::Type{Ember}) = "2018"
+make_datadep(::Type{Ember}) = nothing
 
-nclasses(::Type{<:AbstractEmber}) = 3
-classes(::Type{<:AbstractEmber}) = [-1, 0, 1]
-nattributes(::Type{<:AbstractEmber}) = (2381, )
-ninstances(::Type{<:AbstractEmber}) = (800000, 0, 200000)
+nattributes(::Type{Ember}) = (2381,)
+ninstances(::Type{Ember}) = (600000, 0, 100000)
+positivelabel(::Type{Ember}) = 1
 
 # dataset description
-function loadraw(N::Type{<:AbstractEmber}, type)
+function loadraw(N::Type{Ember}, type)
     hassubset(N, type)
 
     fid = open_ember()
-    data = HDF5.read(fid["$(type)"]["data"])
     targets = HDF5.read(fid["$(type)"]["targets"])
+    inds = findall(targets .!= -1)
+    data = HDF5.read(fid["$(type)"]["data"])[inds, :]
+    targets = targets[inds] .== 1
     close(fid)
     return data, targets
 end
