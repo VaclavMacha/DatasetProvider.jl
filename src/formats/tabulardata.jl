@@ -8,11 +8,12 @@ loadraw(::Type{TabularData}, path) = CSV.read(path, DataFrame; header = true)
 function args(
     ::Type{TabularData};
     asmatrix = false,
+    flux = true,
     origheader = false,
     kwargs...
 )
 
-    return (; asmatrix, origheader)
+    return (; asmatrix, flux, origheader)
 end
 
 # meta data 
@@ -159,6 +160,7 @@ function postprocess(
     ::Type{<:TabularData},
     table::AbstractDataFrame;
     asmatrix,
+    flux,
     origheader,
     kwargs...
     )
@@ -167,6 +169,10 @@ function postprocess(
     if asmatrix
         y = table.targets |> Vector
         x = select(table, Not(:targets)) |> Array
+        if flux
+            x = permutedims(x, (2,1))
+            y = Matrix{eltype(y)}(reshape(y, 1, :))
+        end
         return x, y
     else
         meta = loadmeta(N)
