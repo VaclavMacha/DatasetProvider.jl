@@ -13,6 +13,9 @@ using Random
 using Statistics
 using StatsBase
 
+using JpegTurbo
+using ImageCore
+
 import MLDatasets
 import ZipFile
 
@@ -31,6 +34,7 @@ include("./tasks/classification.jl")
 include("./tasks/regression.jl")
 
 include("./formats/tabulardata.jl")
+include("./formats/matrix.jl")
 include("./formats/images.jl")
 
 include("./splits/traintest.jl")
